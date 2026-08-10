@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, "Segoe UI", Roboto,
+    "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-400: #4a8bfa;
+  --color-brand-500: #2f6feb;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+
+  --color-ink-950: #0a0b10;
+  --color-ink-900: #0d0e15;
+  --color-ink-850: #12131c;
+  --color-ink-800: #171822;
+  --color-ink-700: #23242f;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: #fff;
+  color: #1f2430;
+  cursor: default;
+}
+
+/* Only real text-entry fields should ever show a text caret. */
+body :where(input, textarea, select, [contenteditable='true']) {
+  cursor: text;
+  user-select: text;
+}
+
+body :where(button, a, [role='button']) {
+  cursor: pointer;
+}
+
+/* UI chrome (nav, headings, labels, buttons) is never editable, so it
+   should never pick up a selection caret via click-drag or caret browsing. */
+body :where(h1, h2, h3, h4, h5, h6, button, a, label, nav, li) {
+  user-select: none;
+}
