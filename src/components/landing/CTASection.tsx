@@ -77,7 +77,7 @@ export default function CTASection() {
               <div
                 className="flex h-14 w-14 items-center justify-center rounded-full text-[13px] font-bold text-white"
                 style={{
-                  background: 'conic-gradient(#2f6feb 0% 82%, #23242f 82% 100%)',
+                  background: 'conic-gradient(#015dfc 0% 82%, #23242f 82% 100%)',
                 }}
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ink-850">

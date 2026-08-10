@@ -15,6 +15,7 @@ import {
   Users,
 } from 'lucide-react'
 import AppHeader from '../../components/layout/AppHeader'
+import Footer from '../../components/layout/Footer'
 import PenguinMascot from '../../components/ui/PenguinMascot'
 
 const STAT_ROW = [
@@ -352,6 +353,8 @@ export default function AnonymousProfileDetailPage() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }

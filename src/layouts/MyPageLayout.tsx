@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import AppHeader from '../components/layout/AppHeader'
 import MyPageSidebar from '../components/layout/MyPageSidebar'
+import Footer from '../components/layout/Footer'
 
 export default function MyPageLayout({
   children,
@@ -16,6 +17,7 @@ export default function MyPageLayout({
         <MyPageSidebar footer={sidebarFooter} />
         <main className="min-w-0 flex-1 px-6 py-8 md:px-10">{children}</main>
       </div>
+      <Footer />
     </div>
   )
 }

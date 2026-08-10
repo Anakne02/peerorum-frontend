@@ -1,16 +1,18 @@
 import { Link } from 'react-router-dom'
 import {
+  Bell,
   BarChart3,
   ChevronDown,
   ChevronRight,
   Filter,
   Lightbulb,
   List,
-  Lock,
   RotateCcw,
   Search,
 } from 'lucide-react'
 import PenguinMascot from '../../components/ui/PenguinMascot'
+import Logo from '../../components/ui/Logo'
+import Footer from '../../components/layout/Footer'
 import RankBadge from '../../components/compare/RankBadge'
 import RankPagination from '../../components/compare/RankPagination'
 import { RANKED_STUDENTS, TOTAL_STUDENTS } from '../../data/mockRankings'
@@ -21,6 +23,13 @@ const HERO_STEPS = [
   { icon: BarChart3, label: '나의 위치' },
 ]
 
+const NAV_ITEMS = [
+  { label: '스펙 비교', to: '/compare' },
+  { label: '서비스 소개', to: '/about' },
+  { label: '이용 방법', to: '/how-to-use' },
+  { label: '고객지원', to: '/support' },
+]
+
 const GRADES = ['1학년', '2학년', '3학년', '4학년']
 const GPA_RANGES = ['4.5 ~ 4.0', '3.9 ~ 3.5', '3.4 ~ 3.0', '2.9 ~ 2.5', '2.4 이하']
 
@@ -29,23 +38,34 @@ const SELECTED_CONDITIONS = ['경영학과', '4학년', '학점 4.5 ~ 4.0']
 export default function CompareSpec2Page() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex justify-end border-b border-gray-100 bg-white px-6 py-2.5">
-        <span className="flex items-center gap-1.5 text-[12px] text-gray-400">
-          <Lock className="h-3.5 w-3.5" />
-          모든 정보는 익명으로 안전하게 보호됩니다.
-        </span>
-      </div>
-
-      <div className="bg-linear-to-br from-blue-500 to-blue-700 px-6 py-8">
+      <div className="bg-linear-to-br from-blue-500 to-blue-700 px-6 pb-10">
         <div className="mx-auto max-w-7xl">
-          <Link to="/" className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-blue-600">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
-              </svg>
-            </span>
-            <span className="text-[17px] font-bold text-white">Peer Up</span>
-          </Link>
+          <div className="flex h-16 items-center justify-between">
+            <Link to="/" className="flex items-center">
+              <Logo variant="white" />
+            </Link>
+            <nav className="hidden items-center gap-8 md:flex">
+              {NAV_ITEMS.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.to}
+                  className="text-[14.5px] font-medium text-white/90 hover:text-white"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+            <div className="flex items-center gap-4">
+              <Bell className="h-5 w-5 text-white/80" />
+              <button className="flex items-center gap-1.5 text-white">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-[11px] font-bold">
+                  익
+                </span>
+                <span className="text-[13.5px] font-medium">익명 사용자</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-80" />
+              </button>
+            </div>
+          </div>
 
           <div className="mt-6 flex flex-wrap items-end justify-between gap-8">
             <div>
@@ -293,6 +313,8 @@ export default function CompareSpec2Page() {
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   )
 }

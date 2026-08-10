@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { BarChart3, Compass, Lightbulb, Lock, Shield, TrendingUp } from 'lucide-react'
 import AppHeader from '../../components/layout/AppHeader'
+import Footer from '../../components/layout/Footer'
 import PenguinMascot from '../../components/ui/PenguinMascot'
 import Stepper from '../../components/ui/Stepper'
 
@@ -91,17 +92,19 @@ export default function CompareRequireSpecPage() {
           <div>
             <p className="text-[13.5px] font-semibold text-ink-900">아직 스펙 등록이 어렵다면?</p>
             <p className="text-[12.5px] text-gray-500">
-              서비스 소개를 통해 Peer Up을 더 자세히 알아보세요.
+              서비스 소개를 통해 Peer Oreum을 더 자세히 알아보세요.
             </p>
           </div>
-          <a
-            href="#"
+          <Link
+            to="/about"
             className="shrink-0 text-[13px] font-semibold text-blue-600 hover:underline"
           >
             서비스 소개 보러가기 →
-          </a>
+          </Link>
         </div>
       </main>
+
+      <Footer />
     </div>
   )
 }

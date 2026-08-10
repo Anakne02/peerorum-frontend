@@ -1,5 +1,6 @@
 import { Link, NavLink } from 'react-router-dom'
 import { Bell, ChevronDown } from 'lucide-react'
+import Logo from '../ui/Logo'
 
 const NAV_ITEMS = [
   { label: '스펙 비교', to: '/compare' },
@@ -16,15 +17,10 @@ export default function AppHeader({
   anonymous?: boolean
 }) {
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-100 bg-white/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-gray-100 bg-white">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-              <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
-            </svg>
-          </span>
-          <span className="text-[17px] font-bold text-ink-900">Peer Up</span>
+        <Link to="/" className="flex items-center">
+          <Logo />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">

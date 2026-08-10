@@ -1,4 +1,5 @@
 import { Bell, GraduationCap, Globe2, Award, Briefcase } from 'lucide-react'
+import Logo from '../ui/Logo'
 
 const STATS = [
   {
@@ -44,14 +45,7 @@ export default function PhoneMockup() {
       </div>
 
       <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-1.5">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white">
-            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
-              <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
-            </svg>
-          </div>
-          <span className="text-[13px] font-bold text-ink-900">Peer Up</span>
-        </div>
+        <Logo className="h-4" />
         <Bell className="h-4 w-4 text-gray-400" />
       </div>
 

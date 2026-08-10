@@ -1,10 +1,12 @@
-import { Link } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
+import { useSignupModal } from '../../context/SignupModalContext'
 
 export default function LoginPage() {
+  const { open: openSignupModal } = useSignupModal()
+
   return (
     <AuthLayout>
-      <div className="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
+      <div>
         <h1 className="text-[22px] font-bold text-ink-900">로그인</h1>
 
         <form className="mt-6 flex flex-col gap-3.5">
@@ -58,9 +60,13 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-[13px] text-gray-500">
           계정이 없으신가요?{' '}
-          <Link to="/signup" className="font-semibold text-blue-600 hover:underline">
+          <button
+            type="button"
+            onClick={openSignupModal}
+            className="font-semibold text-blue-600 hover:underline"
+          >
             회원가입
-          </Link>
+          </button>
         </p>
       </div>
     </AuthLayout>

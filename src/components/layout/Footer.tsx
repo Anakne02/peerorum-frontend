@@ -1,4 +1,5 @@
 import { Clock, Mail, MessageCircle, Phone } from 'lucide-react'
+import Logo from '../ui/Logo'
 
 function InstagramIcon() {
   return (
@@ -29,15 +30,8 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl">
         <div className="grid gap-12 pb-14 sm:grid-cols-2 md:grid-cols-4">
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-white">
-                <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
-                  <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
-                </svg>
-              </span>
-              <span className="text-[15px] font-bold text-white">피어오름</span>
-            </div>
-            <p className="mt-3 text-[13px] leading-relaxed">
+            <Logo variant="white" className="h-6" />
+            <p className="mt-4 text-[13px] leading-relaxed">
               대학생 스펙 비교 및 성장 플랫폼을 함께 비교하고 함께 성장합니다.
             </p>
           </div>
@@ -98,7 +92,7 @@ export default function Footer() {
                 {link}
               </a>
             ))}
-            <span>© 2026 Peer Up. All rights reserved.</span>
+            <span>© 2026 Peer Oreum. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-3">

@@ -1,16 +1,22 @@
+@import "pretendard/dist/web/variable/pretendardvariable.css";
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Pretendard Variable", Pretendard, system-ui, "Segoe UI", Roboto,
     "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 
-  --color-brand-50: #eff6ff;
-  --color-brand-100: #dbeafe;
-  --color-brand-200: #bfdbfe;
-  --color-brand-400: #4a8bfa;
-  --color-brand-500: #2f6feb;
-  --color-brand-600: #2563eb;
-  --color-brand-700: #1d4ed8;
+  /* Brand blue, anchored on #015DFC (Peer Oreum primary) at the 600 step. */
+  --color-blue-50: #f0f5ff;
+  --color-blue-100: #e0ecff;
+  --color-blue-200: #bed5fe;
+  --color-blue-300: #86b2fe;
+  --color-blue-400: #4388fe;
+  --color-blue-500: #1369fe;
+  --color-blue-600: #015dfc;
+  --color-blue-700: #014cce;
+  --color-blue-800: #0741a5;
+  --color-blue-900: #0d3780;
+  --color-blue-950: #0a2450;
 
   --color-ink-950: #0a0b10;
   --color-ink-900: #0d0e15;
@@ -28,6 +34,7 @@ body {
   background: #fff;
   color: #1f2430;
   cursor: default;
+  font-family: var(--font-sans);
 }
 
 /* Only real text-entry fields should ever show a text caret. */
