@@ -25,3 +25,6 @@
 - 라우팅: react-router-dom
 - 스타일: tailwindcss (v4, @tailwindcss/vite 플러그인)
 - 아이콘: lucide-react
+
+
+<img width="645" height="334" alt="image" src="https://github.com/user-attachments/assets/35ab2149-9c6b-48d3-8031-20b895782688" />
