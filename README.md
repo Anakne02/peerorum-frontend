@@ -3,7 +3,7 @@
 ## 프론트엔드 시작 방법
 #### 1. 프로젝트 폴더로 이동
 
-```cd "c:\Users\hyeonjeong\Desktop\피어오름"```
+```cd "c:~~\피어오름"```
 
 #### 2. 의존성 설치 (이미 node_modules가 있어서 최초 1회만 필요, 새로 clone했거나 package.json이 바뀌었으면 다시 실행)
 
