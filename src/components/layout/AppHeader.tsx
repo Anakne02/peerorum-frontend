@@ -18,17 +18,17 @@ export default function AppHeader({
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-gray-100 bg-white">
-      <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="flex items-center">
           <Logo />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-9 md:flex">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.label}
               to={item.to}
-              className="text-[14.5px] font-medium text-gray-600 transition-colors hover:text-ink-900"
+              className="text-[15px] font-medium text-gray-600 transition-colors hover:text-ink-900"
             >
               {item.label}
             </NavLink>

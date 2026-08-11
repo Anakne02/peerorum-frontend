@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ArrowRight, Lock, PlayCircle, TrendingUp } from 'lucide-react'
 import PhoneMockup from './PhoneMockup'
 
@@ -20,13 +21,13 @@ export default function HeroSection() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href="#"
+            <Link
+              to="/compare"
               className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-700"
             >
               무료로 시작하기
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
             <a
               href="#"
               className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3.5 text-[15px] font-semibold text-ink-900 transition-colors hover:bg-gray-50"

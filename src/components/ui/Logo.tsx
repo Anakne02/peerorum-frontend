@@ -12,6 +12,8 @@ export default function Logo({
     <img
       src={variant === 'white' ? logoWhite : logoBlue}
       alt="Peer Oreum"
+      width={636}
+      height={116}
       className={`w-auto ${className}`}
     />
   )

@@ -38,18 +38,18 @@ const SELECTED_CONDITIONS = ['경영학과', '4학년', '학점 4.5 ~ 4.0']
 export default function CompareSpec2Page() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-linear-to-br from-blue-500 to-blue-700 px-6 pb-10">
-        <div className="mx-auto max-w-7xl">
+      <div className="bg-linear-to-br from-blue-500 to-blue-700 pb-10">
+        <div className="mx-auto max-w-7xl px-6">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center">
               <Logo variant="white" />
             </Link>
-            <nav className="hidden items-center gap-8 md:flex">
+            <nav className="hidden items-center gap-9 md:flex">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.label}
                   to={item.to}
-                  className="text-[14.5px] font-medium text-white/90 hover:text-white"
+                  className="text-[15px] font-medium text-white/90 hover:text-white"
                 >
                   {item.label}
                 </Link>
