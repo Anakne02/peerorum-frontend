@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Award,
   Briefcase,
@@ -14,6 +14,17 @@ import {
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import PenguinMascot from '../../components/ui/PenguinMascot'
+import PenguinHero from '../../components/ui/PenguinHero'
+import { useAuth } from '../../context/AuthContext'
+
+const REGISTERABLE_ITEMS = [
+  { icon: GraduationCap, label: '학점', description: '재학중이거나 1학년일 경우 학점을 등록해요.' },
+  { icon: Globe2, label: '어학', description: 'TOEIC, TOEFL, OPIc 등 어학 성적을 등록해요.' },
+  { icon: Award, label: '자격증', description: '취득한 자격증과 유효기간을 등록해요.' },
+  { icon: Briefcase, label: '대외활동', description: '대외활동 및 봉사활동을 등록해요.' },
+  { icon: Users, label: '인턴', description: '인턴 경험을 등록해요.' },
+  { icon: Trophy, label: '수상', description: '수상 내역과 성과를 등록해요.' },
+]
 
 const SUMMARY_STATS = [
   { icon: GraduationCap, label: '학점', value: '4.29 / 4.5', percentile: '상위 23%' },
@@ -85,25 +96,67 @@ function DetailCard({
 }
 
 export default function MySpecsPage() {
-  return (
-    <MyPageLayout
-      sidebarFooter={
-        <div className="rounded-2xl bg-blue-50 p-4">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-blue-600">
-            <Users className="h-4 w-4" />
-          </span>
-          <p className="mt-2 text-[12.5px] font-semibold leading-snug text-ink-900">
-            더 많은 학생들과 비교하고 성장해보세요
-          </p>
-          <Link
-            to="/compare"
-            className="mt-2 inline-block text-[12.5px] font-semibold text-blue-600 hover:underline"
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  if (!user?.hasSpec) {
+    return (
+      <MyPageLayout>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-[22px] font-bold text-ink-900">내 스펙</h1>
+            <p className="mt-1 text-[13.5px] text-gray-500">
+              등록한 스펙을 관리하고, 성장 과정을 한눈에 확인해보세요.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-[13px] font-medium text-ink-900 hover:bg-gray-50"
           >
-            스펙 비교하기 →
-          </Link>
+            <Settings2 className="h-3.5 w-3.5" />
+            스펙 공개 설정
+          </button>
         </div>
-      }
-    >
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm shadow-black/[0.02]">
+          <PenguinHero className="mx-auto h-28 w-28" />
+          <h2 className="mt-5 text-[18px] font-bold text-ink-900">아직 등록된 스펙이 없어요</h2>
+          <p className="mx-auto mt-2 max-w-sm text-[13.5px] leading-relaxed text-gray-500">
+            학점, 어학, 자격증, 대외활동, 인턴, 수상 등
+            <br />내 스펙을 등록하고 다른 학생들과 비교해보세요!
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/mypage/specs/register')}
+            className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
+          >
+            스펙 등록하기
+          </button>
+
+          <p className="mt-8 text-[12.5px] font-medium text-gray-400">등록 가능한 항목</p>
+          <div className="mx-auto mt-4 grid max-w-2xl grid-cols-3 gap-3 sm:grid-cols-6">
+            {REGISTERABLE_ITEMS.map((item) => (
+              <div
+                key={item.label}
+                className="flex flex-col items-center gap-1.5 rounded-xl bg-gray-50 px-2 py-3"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm shadow-black/[0.02]">
+                  <item.icon className="h-4 w-4" />
+                </span>
+                <span className="text-[12px] font-semibold text-ink-900">{item.label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-[12px] text-gray-400">
+            스펙을 등록할수록 더 정확한 비교와 분석이 가능해져요!
+          </p>
+        </div>
+      </MyPageLayout>
+    )
+  }
+
+  return (
+    <MyPageLayout>
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-[22px] font-bold text-ink-900">내 스펙</h1>
@@ -116,7 +169,10 @@ export default function MySpecsPage() {
             <Settings2 className="h-3.5 w-3.5" />
             스펙 공개 설정
           </button>
-          <button className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-blue-700">
+          <button
+            onClick={() => navigate('/mypage/specs/edit')}
+            className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-blue-700"
+          >
             <FileEdit className="h-3.5 w-3.5" />
             스펙 수정하기
           </button>

@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import {
-  Bell,
   BarChart3,
   ChevronDown,
   ChevronRight,
@@ -13,6 +12,7 @@ import {
 import PenguinMascot from '../../components/ui/PenguinMascot'
 import Logo from '../../components/ui/Logo'
 import Footer from '../../components/layout/Footer'
+import ProfileMenu from '../../components/layout/ProfileMenu'
 import RankBadge from '../../components/compare/RankBadge'
 import RankPagination from '../../components/compare/RankPagination'
 import { RANKED_STUDENTS, TOTAL_STUDENTS } from '../../data/mockRankings'
@@ -25,9 +25,9 @@ const HERO_STEPS = [
 
 const NAV_ITEMS = [
   { label: '스펙 비교', to: '/compare' },
-  { label: '서비스 소개', to: '/about' },
-  { label: '이용 방법', to: '/how-to-use' },
-  { label: '고객지원', to: '/support' },
+  { label: '서비스 소개', to: '/#service-intro' },
+  { label: '이용 방법', to: '/#how-to-use' },
+  { label: '고객지원', to: '/#support' },
 ]
 
 const GRADES = ['1학년', '2학년', '3학년', '4학년']
@@ -55,16 +55,7 @@ export default function CompareSpec2Page() {
                 </Link>
               ))}
             </nav>
-            <div className="flex items-center gap-4">
-              <Bell className="h-5 w-5 text-white/80" />
-              <button className="flex items-center gap-1.5 text-white">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20 text-[11px] font-bold">
-                  익
-                </span>
-                <span className="text-[13.5px] font-medium">익명 사용자</span>
-                <ChevronDown className="h-3.5 w-3.5 opacity-80" />
-              </button>
-            </div>
+            <ProfileMenu variant="dark" />
           </div>
 
           <div className="mt-6 flex flex-wrap items-end justify-between gap-8">
@@ -165,10 +156,12 @@ export default function CompareSpec2Page() {
               </label>
               <div className="relative">
                 <select
-                  defaultValue="학점 구간 (4.5만점)"
+                  defaultValue="전체"
                   className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] text-ink-900 outline-none focus:border-blue-500"
                 >
-                  <option>학점 구간 (4.5만점)</option>
+                  <option>전체</option>
+                  <option>전공 학점만</option>
+                  <option>평균 학점만</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
               </div>

@@ -101,10 +101,6 @@ export default function ComparisonSection() {
             </tbody>
           </table>
         </div>
-
-        <p className="mt-4 text-center text-[12.5px] text-gray-400">
-          일반적으로 20-30명의 학생 데이터를 기반으로 비교 결과를 제공합니다.
-        </p>
       </div>
     </section>
   )

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { ArrowRight, BarChart3, Lock, ShieldCheck, Users } from 'lucide-react'
 import PhoneMockup from './PhoneMockup'
 
@@ -36,13 +37,13 @@ export default function CTASection() {
             같은 조건의 학생들과 비교해보세요.
           </p>
 
-          <a
-            href="#"
+          <Link
+            to="/compare"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/30 transition-colors hover:bg-blue-500"
           >
             무료로 시작하기
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
 
           <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3">
             {HIGHLIGHTS.map((item) => (

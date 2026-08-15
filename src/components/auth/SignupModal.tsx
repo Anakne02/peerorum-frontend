@@ -2,23 +2,23 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
+  ArrowRight,
   Check,
-  CheckCircle2,
   ChevronDown,
   ClipboardList,
   FolderOpen,
   Info,
   Link2,
   Lock,
-  PartyPopper,
   SquareCheck,
   Target,
 } from 'lucide-react'
 import Modal from '../ui/Modal'
 import Stepper from '../ui/Stepper'
 import { useSignupModal } from '../../context/SignupModalContext'
+import { useAuth } from '../../context/AuthContext'
 
-type Step = 'intro' | 'basic' | 'compare' | 'link' | 'terms' | 'complete'
+type Step = 'intro' | 'basic' | 'compare' | 'terms' | 'complete'
 
 const INTRO_STEPS = [
   {
@@ -43,10 +43,13 @@ const INTRO_STEPS = [
 
 const GRADES = ['1학년', '2학년', '3학년', '4학년', '기타']
 
-const CHECKS = [
-  '학점, 어학, 자격증 등 스펙을 등록할 수 있어요.',
-  '인증을 통해 신뢰도 높은 비교가 가능해요.',
-  '등록한 스펙은 안전하게 보호돼요.',
+const SPEC_LINK_GUIDE = [
+  { title: '마이페이지로 이동', description: '우측 상단 프로필 아이콘을 클릭하세요.' },
+  { title: '내 스펙 메뉴 선택', description: "사이드 메뉴에서 '내 스펙'을 선택하세요." },
+  {
+    title: '스펙 항목 연동',
+    description: '학점, 어학, 자격증 등 스펙을 등록하고 인증하여 비교를 시작해보세요.',
+  },
 ]
 
 const TERMS = [
@@ -105,9 +108,10 @@ function ProgressHeader({ step, totalSteps }: { step: number; totalSteps: number
 }
 
 export default function SignupModal() {
-  const { isOpen, close } = useSignupModal()
+  const { isOpen, initialStep, close } = useSignupModal()
+  const { login } = useAuth()
   const navigate = useNavigate()
-  const [step, setStep] = useState<Step>('intro')
+  const [step, setStep] = useState<Step>(initialStep)
   const [grade, setGrade] = useState('4학년')
   const [checked, setChecked] = useState<Record<string, boolean>>({
     service: true,
@@ -116,10 +120,10 @@ export default function SignupModal() {
   })
 
   useEffect(() => {
-    if (!isOpen) {
-      setStep('intro')
+    if (isOpen) {
+      setStep(initialStep)
     }
-  }, [isOpen])
+  }, [isOpen, initialStep])
 
   const allChecked = Object.values(checked).every(Boolean)
   const toggleAll = () => {
@@ -132,9 +136,16 @@ export default function SignupModal() {
     navigate('/login')
   }
 
-  const finish = () => {
+  const goToMyPage = () => {
     close()
+    login({ hasSpec: false })
     navigate('/mypage/specs')
+  }
+
+  const goToLandingIntro = () => {
+    close()
+    login({ hasSpec: false })
+    navigate('/')
   }
 
   const maxWidthClassName = step === 'terms' ? 'max-w-2xl' : WIZARD_MAX_WIDTH
@@ -234,9 +245,6 @@ export default function SignupModal() {
                     학교를 선택해주세요
                   </option>
                   <option>단국대학교</option>
-                  <option>서울대학교</option>
-                  <option>연세대학교</option>
-                  <option>고려대학교</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               </div>
@@ -315,7 +323,7 @@ export default function SignupModal() {
             className="mt-6 flex flex-col gap-5"
             onSubmit={(e) => {
               e.preventDefault()
-              setStep('link')
+              setStep('terms')
             }}
           >
             <div>
@@ -364,62 +372,6 @@ export default function SignupModal() {
               </button>
             </div>
           </form>
-        </div>
-      )}
-
-      {step === 'link' && (
-        <div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setStep('compare')}
-              className="text-gray-400 hover:text-gray-600"
-              aria-label="이전"
-            >
-              <ArrowLeft className="h-4.5 w-4.5" />
-            </button>
-            <span className="text-[14px] font-semibold text-ink-900">회원가입</span>
-            <ProgressHeader step={3} totalSteps={3} />
-          </div>
-
-          <h2 className="mt-6 text-[19px] font-bold text-ink-900">스펙 등록 연동을 준비할게요</h2>
-          <p className="mt-1.5 text-[13.5px] text-gray-500">
-            입력한 정보를 바탕으로 스펙 등록을 도와드려요.
-          </p>
-
-          <div className="mt-6 flex justify-center">
-            <span className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-              <FolderOpen className="h-9 w-9" />
-              <span className="absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-white">
-                <CheckCircle2 className="h-4 w-4" />
-              </span>
-            </span>
-          </div>
-
-          <div className="mt-6 flex flex-col gap-2.5">
-            {CHECKS.map((text) => (
-              <div key={text} className="flex items-start gap-2.5">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-                <p className="text-[13.5px] leading-relaxed text-gray-600">{text}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-7 flex gap-3">
-            <button
-              type="button"
-              onClick={() => setStep('compare')}
-              className="w-full rounded-xl border border-gray-200 py-3 text-[15px] font-semibold text-ink-900 hover:bg-gray-50"
-            >
-              이전
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep('terms')}
-              className="w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700"
-            >
-              가입 완료
-            </button>
-          </div>
         </div>
       )}
 
@@ -491,7 +443,7 @@ export default function SignupModal() {
           <div className="mt-6 flex gap-3">
             <button
               type="button"
-              onClick={() => setStep('link')}
+              onClick={() => setStep('compare')}
               className="w-full rounded-xl border border-gray-200 py-3 text-[15px] font-semibold text-ink-900 hover:bg-gray-50"
             >
               이전
@@ -514,7 +466,7 @@ export default function SignupModal() {
       )}
 
       {step === 'complete' && (
-        <div className="text-center">
+        <div>
           <div className="flex justify-center">
             <Stepper
               steps={[
@@ -526,23 +478,55 @@ export default function SignupModal() {
             />
           </div>
 
-          <span className="mx-auto mt-8 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-            <PartyPopper className="h-8 w-8" />
+          <span className="mx-auto mt-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+            <FolderOpen className="h-7 w-7" />
           </span>
 
-          <h1 className="mt-5 text-[21px] font-bold text-ink-900">가입이 완료되었습니다!</h1>
+          <h1 className="mt-4 text-[20px] font-bold leading-snug text-ink-900">
+            스펙 등록은 마이페이지에서 연동할 수 있어요!
+          </h1>
           <p className="mt-2 text-[13.5px] leading-relaxed text-gray-500">
-            이제 나의 스펙을 등록하고
+            회원가입이 완료되었습니다.
             <br />
-            같은 조건의 학생들과 비교해보세요.
+            메인 서비스를 이용하기 전에 내 스펙을 등록하여 더 정확한 비교와 분석을 받아보세요.
           </p>
 
-          <button
-            onClick={finish}
-            className="mt-7 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700"
-          >
-            시작하기
-          </button>
+          <div className="mt-6 rounded-2xl bg-gray-50 p-4">
+            <p className="mb-3 text-[13px] font-semibold text-ink-900">스펙 등록 방법</p>
+            <div className="flex flex-col gap-3">
+              {SPEC_LINK_GUIDE.map((item, index) => (
+                <div key={item.title} className="flex items-start gap-3">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[12px] font-bold text-white">
+                    {index + 1}
+                  </span>
+                  <div>
+                    <p className="text-[13.5px] font-semibold text-ink-900">{item.title}</p>
+                    <p className="text-[12.5px] leading-relaxed text-gray-500">
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <button
+              type="button"
+              onClick={goToMyPage}
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 text-[14.5px] font-semibold text-ink-900 hover:bg-gray-50"
+            >
+              마이페이지로 이동
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={goToLandingIntro}
+              className="w-full rounded-xl bg-blue-600 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              서비스 둘러보기
+            </button>
+          </div>
         </div>
       )}
     </Modal>

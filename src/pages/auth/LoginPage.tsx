@@ -1,15 +1,23 @@
+import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
-import { useSignupModal } from '../../context/SignupModalContext'
+import { useAuth } from '../../context/AuthContext'
 
 export default function LoginPage() {
-  const { open: openSignupModal } = useSignupModal()
+  const { login } = useAuth()
+  const navigate = useNavigate()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    login()
+    navigate('/compare')
+  }
 
   return (
     <AuthLayout>
       <div>
         <h1 className="text-[22px] font-bold text-ink-900">로그인</h1>
 
-        <form className="mt-6 flex flex-col gap-3.5">
+        <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleSubmit}>
           <input
             type="email"
             placeholder="이메일 주소를 입력해주세요"
@@ -60,13 +68,9 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-[13px] text-gray-500">
           계정이 없으신가요?{' '}
-          <button
-            type="button"
-            onClick={openSignupModal}
-            className="font-semibold text-blue-600 hover:underline"
-          >
+          <Link to="/signup" className="font-semibold text-blue-600 hover:underline">
             회원가입
-          </button>
+          </Link>
         </p>
       </div>
     </AuthLayout>

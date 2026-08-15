@@ -15,7 +15,11 @@ export default function Modal({
   useEffect(() => {
     if (!open) return
 
+    // index.css reserves the scrollbar gutter permanently
+    // (`scrollbar-gutter: stable` on :root), so hiding the scrollbar here
+    // never changes the page's width — no extra compensation needed.
     document.body.style.overflow = 'hidden'
+
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }

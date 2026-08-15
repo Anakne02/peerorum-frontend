@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { ArrowRight, ChevronUp, Heart, Lock } from 'lucide-react'
+import FeedbackModal from './FeedbackModal'
 
 const TABS = ['전체', '개선 예정', '개선 중', '완료']
 
@@ -27,6 +29,8 @@ const FEEDBACKS = [
 ]
 
 export default function FeedbackSection() {
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+
   return (
     <section className="bg-gray-50 px-6 py-24">
       <div className="mx-auto grid max-w-7xl items-center gap-14 md:grid-cols-2">
@@ -43,13 +47,14 @@ export default function FeedbackSection() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a
-              href="#"
+            <button
+              type="button"
+              onClick={() => setFeedbackOpen(true)}
               className="flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-700"
             >
               피드백 남기기
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </button>
             <a
               href="#"
               className="rounded-full border border-gray-200 bg-white px-6 py-3.5 text-[15px] font-semibold text-ink-900 transition-colors hover:bg-gray-100"
@@ -128,6 +133,8 @@ export default function FeedbackSection() {
           </div>
         </div>
       </div>
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </section>
   )
 }

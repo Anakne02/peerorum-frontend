@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ShieldCheck, Users, TrendingUp } from 'lucide-react'
-import PenguinMascot from '../components/ui/PenguinMascot'
+import PenguinHero from '../components/ui/PenguinHero'
 import Logo from '../components/ui/Logo'
 
 const FEATURES = [
@@ -31,8 +31,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               대학생 스펙 비교 플랫폼, 피어오름
             </p>
 
-            <div className="mt-10 flex justify-center">
-              <PenguinMascot className="h-32 w-32" />
+            <div className="mt-6 flex justify-center">
+              <PenguinHero className="h-44 w-44" />
             </div>
           </div>
 

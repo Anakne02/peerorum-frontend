@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom'
-import { BarChart3, Compass, Lightbulb, Lock, Shield, TrendingUp } from 'lucide-react'
-import AppHeader from '../../components/layout/AppHeader'
+import { useNavigate } from 'react-router-dom'
+import { BarChart3, Compass, Lightbulb, Lock, TrendingUp } from 'lucide-react'
+import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
-import PenguinMascot from '../../components/ui/PenguinMascot'
+import PenguinHero from '../../components/ui/PenguinHero'
 import Stepper from '../../components/ui/Stepper'
+import { useAuth } from '../../context/AuthContext'
 
 const BENEFITS = [
   { icon: BarChart3, title: '조건별 익명 스펙 비교', description: '학교, 학과, 학년 등 다양한 조건으로 비교할 수 있어요.' },
@@ -13,9 +14,16 @@ const BENEFITS = [
 ]
 
 export default function CompareRequireSpecPage() {
+  const navigate = useNavigate()
+  const { isLoggedIn } = useAuth()
+
+  const handleRegisterClick = () => {
+    navigate(isLoggedIn ? '/mypage/specs' : '/login')
+  }
+
   return (
     <div className="min-h-screen bg-white">
-      <AppHeader />
+      <Header />
 
       <main className="mx-auto max-w-4xl px-6 py-12">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -33,11 +41,8 @@ export default function CompareRequireSpecPage() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm shadow-black/[0.02]">
-          <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
-            <PenguinMascot className="h-24 w-24" />
-            <span className="absolute -right-1 -top-1 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg">
-              <Shield className="h-4 w-4" />
-            </span>
+          <div className="mx-auto flex h-28 w-28 items-center justify-center">
+            <PenguinHero className="h-28 w-28" />
           </div>
 
           <h2 className="mx-auto mt-6 max-w-lg text-[20px] font-bold leading-snug text-ink-900">
@@ -56,12 +61,13 @@ export default function CompareRequireSpecPage() {
           </div>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <Link
-              to="/mypage/specs"
+            <button
+              type="button"
+              onClick={handleRegisterClick}
               className="rounded-xl bg-blue-600 px-6 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
             >
               내 스펙 등록하기
-            </Link>
+            </button>
             <button className="rounded-xl border border-gray-200 px-6 py-3 text-[14.5px] font-semibold text-ink-900 hover:bg-gray-50">
               기존 스펙 불러오기
             </button>
@@ -95,12 +101,12 @@ export default function CompareRequireSpecPage() {
               서비스 소개를 통해 Peer Oreum을 더 자세히 알아보세요.
             </p>
           </div>
-          <Link
-            to="/about"
+          <a
+            href="/#service-intro"
             className="shrink-0 text-[13px] font-semibold text-blue-600 hover:underline"
           >
             서비스 소개 보러가기 →
-          </Link>
+          </a>
         </div>
       </main>
 

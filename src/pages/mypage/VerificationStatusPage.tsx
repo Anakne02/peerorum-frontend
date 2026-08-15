@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Award,
   ArrowUpDown,
@@ -16,6 +17,8 @@ import {
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import PenguinMascot from '../../components/ui/PenguinMascot'
+import PenguinHero from '../../components/ui/PenguinHero'
+import { useAuth } from '../../context/AuthContext'
 
 const PROFILE_FIELDS = [
   { icon: Building2, label: '학교', value: '단국대학교' },
@@ -69,9 +72,39 @@ const ITEMS = [
 
 export default function VerificationStatusPage() {
   const [activeTab, setActiveTab] = useState('전체')
+  const { user } = useAuth()
+  const navigate = useNavigate()
 
   const filtered =
     activeTab === '전체' ? ITEMS : ITEMS.filter((item) => `인증 ${item.status}` === activeTab)
+
+  if (!user?.hasSpec) {
+    return (
+      <MyPageLayout>
+        <div>
+          <h1 className="text-[22px] font-bold text-ink-900">인증 현황</h1>
+          <p className="mt-1 text-[13.5px] text-gray-500">
+            내가 등록한 스펙의 인증 상태를 확인할 수 있어요.
+          </p>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-gray-100 bg-white p-10 text-center shadow-sm shadow-black/[0.02]">
+          <PenguinHero className="mx-auto h-28 w-28" />
+          <h2 className="mt-5 text-[18px] font-bold text-ink-900">아직 등록된 스펙이 없어요</h2>
+          <p className="mx-auto mt-2 max-w-sm text-[13.5px] leading-relaxed text-gray-500">
+            스펙을 등록하면 인증 진행 상태를 이곳에서 확인할 수 있어요.
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/mypage/specs/register')}
+            className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
+          >
+            스펙 등록하기
+          </button>
+        </div>
+      </MyPageLayout>
+    )
+  }
 
   return (
     <MyPageLayout>

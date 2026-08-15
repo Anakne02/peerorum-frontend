@@ -1,39 +1,42 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
 import { SignupModalProvider } from './context/SignupModalContext'
 import SignupModal from './components/auth/SignupModal'
+import ScrollToTop from './components/ScrollToTop'
 import LandingPage from './pages/LandingPage'
-import AboutPage from './pages/AboutPage'
-import HowToUsePage from './pages/HowToUsePage'
-import SupportPage from './pages/SupportPage'
 import LoginPage from './pages/auth/LoginPage'
+import SignupPage from './pages/auth/SignupPage'
 import MySpecsPage from './pages/mypage/MySpecsPage'
+import SpecRegisterPage from './pages/mypage/SpecRegisterPage'
+import SpecEditPage from './pages/mypage/SpecEditPage'
 import VerificationStatusPage from './pages/mypage/VerificationStatusPage'
-import CompareRequireSpecPage from './pages/compare/CompareRequireSpecPage'
+import ComparePage from './pages/compare/ComparePage'
 import AnonymousProfileDetailPage from './pages/compare/AnonymousProfileDetailPage'
-import CompareSpec2Page from './pages/compare/CompareSpec2Page'
 
 function App() {
   return (
     <BrowserRouter>
-      <SignupModalProvider>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/how-to-use" element={<HowToUsePage />} />
-          <Route path="/support" element={<SupportPage />} />
+      <AuthProvider>
+        <SignupModalProvider>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
 
-          <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
-          <Route path="/mypage/specs" element={<MySpecsPage />} />
-          <Route path="/mypage/verification" element={<VerificationStatusPage />} />
+            <Route path="/mypage/specs" element={<MySpecsPage />} />
+            <Route path="/mypage/specs/register" element={<SpecRegisterPage />} />
+            <Route path="/mypage/specs/edit" element={<SpecEditPage />} />
+            <Route path="/mypage/verification" element={<VerificationStatusPage />} />
 
-          <Route path="/compare" element={<CompareRequireSpecPage />} />
-          <Route path="/compare/:studentId" element={<AnonymousProfileDetailPage />} />
-          <Route path="/comparespec2" element={<CompareSpec2Page />} />
-        </Routes>
+            <Route path="/compare" element={<ComparePage />} />
+            <Route path="/compare/:studentId" element={<AnonymousProfileDetailPage />} />
+          </Routes>
 
-        <SignupModal />
-      </SignupModalProvider>
+          <SignupModal />
+        </SignupModalProvider>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

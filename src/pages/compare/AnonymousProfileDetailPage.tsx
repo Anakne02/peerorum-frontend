@@ -14,7 +14,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
-import AppHeader from '../../components/layout/AppHeader'
+import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import PenguinMascot from '../../components/ui/PenguinMascot'
 
@@ -51,7 +51,7 @@ export default function AnonymousProfileDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <AppHeader userLabel="익명 사용자" anonymous />
+      <Header />
 
       <main className="mx-auto max-w-6xl px-6 py-8">
         <Link

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Lock, PlayCircle, TrendingUp } from 'lucide-react'
+import { ArrowRight, Lock, TrendingUp } from 'lucide-react'
 import PhoneMockup from './PhoneMockup'
+import InstagramIcon from '../ui/InstagramIcon'
 
 export default function HeroSection() {
   return (
@@ -29,11 +30,14 @@ export default function HeroSection() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
-              href="#"
+              href="https://www.instagram.com/peer_oreum/"
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3.5 text-[15px] font-semibold text-ink-900 transition-colors hover:bg-gray-50"
             >
-              <PlayCircle className="h-4 w-4" />
-              서비스 소개 보기
+              <InstagramIcon className="h-4 w-4" />
+              공식 인스타그램 보기
+              <ArrowRight className="h-4 w-4" />
             </a>
           </div>
 
