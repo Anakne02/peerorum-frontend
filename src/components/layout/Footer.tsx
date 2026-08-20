@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Clock, MessageCircle, Phone } from "lucide-react";
 import Logo from "../ui/Logo";
+import LegalTermsModal from "./LegalTermsModal";
+import { LEGAL_TERMS } from "../../data/legalTerms";
 
 function InstagramIcon() {
   return (
@@ -41,6 +44,8 @@ const SUPPORT_LINKS = ["공지사항", "자주 묻는 질문", "문의하기", "
 const LEGAL_LINKS = ["개인정보처리방침", "이용약관", "스펙 인증 운영정책"];
 
 export default function Footer() {
+  const [activeTerm, setActiveTerm] = useState<string | null>(null);
+
   return (
     <footer className="bg-ink-900 px-6 pt-16 text-gray-400">
       <div className="mx-auto max-w-7xl">
@@ -111,9 +116,14 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-between gap-4 border-t border-ink-700 py-6 text-[12.5px] sm:flex-row">
           <div className="flex flex-wrap items-center justify-center gap-4">
             {LEGAL_LINKS.map((link) => (
-              <a key={link} href="#" className="hover:text-white">
+              <button
+                key={link}
+                type="button"
+                onClick={() => setActiveTerm(link)}
+                className="hover:text-white"
+              >
                 {link}
-              </a>
+              </button>
             ))}
             <span>© 2026 Peer Oreum. All rights reserved.</span>
           </div>
@@ -136,6 +146,11 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      <LegalTermsModal
+        term={activeTerm ? LEGAL_TERMS[activeTerm] : null}
+        onClose={() => setActiveTerm(null)}
+      />
     </footer>
   );
 }

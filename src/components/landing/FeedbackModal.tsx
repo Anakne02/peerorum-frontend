@@ -93,14 +93,6 @@ export default function FeedbackModal({ open, onClose }: { open: boolean; onClos
             />
           </div>
 
-          <p className="mt-3 text-[12px] text-gray-400">
-            환불 관련 문의는{' '}
-            <a href="#" className="font-medium text-blue-600 hover:underline">
-              환불 페이지 ↗
-            </a>{' '}
-            를 이용해 주세요.
-          </p>
-
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"

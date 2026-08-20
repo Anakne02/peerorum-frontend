@@ -18,7 +18,10 @@ import {
 import MyPageLayout from '../../layouts/MyPageLayout'
 import PenguinMascot from '../../components/ui/PenguinMascot'
 import PenguinHero from '../../components/ui/PenguinHero'
+import RankPagination from '../../components/compare/RankPagination'
 import { useAuth } from '../../context/AuthContext'
+
+const PAGE_SIZE = 5
 
 const PROFILE_FIELDS = [
   { icon: Building2, label: '학교', value: '단국대학교' },
@@ -72,11 +75,21 @@ const ITEMS = [
 
 export default function VerificationStatusPage() {
   const [activeTab, setActiveTab] = useState('전체')
+  const [page, setPage] = useState(1)
   const { user } = useAuth()
   const navigate = useNavigate()
 
+  const selectTab = (tab: string) => {
+    setActiveTab(tab)
+    setPage(1)
+  }
+
   const filtered =
     activeTab === '전체' ? ITEMS : ITEMS.filter((item) => `인증 ${item.status}` === activeTab)
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   if (!user?.hasSpec) {
     return (
@@ -126,12 +139,21 @@ export default function VerificationStatusPage() {
           <div className="flex items-center gap-4">
             <PenguinMascot className="h-14 w-14" />
             <div>
-              <span className="text-[16px] font-bold text-ink-900">유경</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[16px] font-bold text-ink-900">유경</span>
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">
+                  익명 · 열정펭귄
+                </span>
+              </div>
               <p className="mt-0.5 text-[13px] text-gray-500">단국대학교 경영학과 4학년</p>
               <p className="text-[12.5px] text-gray-400">marketing@dankook.ac.kr</p>
             </div>
           </div>
-          <button className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-[13px] font-medium text-ink-900 hover:bg-gray-50">
+          <button
+            type="button"
+            onClick={() => navigate('/mypage/verification/edit-info')}
+            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-[13px] font-medium text-ink-900 hover:bg-gray-50"
+          >
             <UserPen className="h-3.5 w-3.5" />
             개인정보 수정
           </button>
@@ -172,7 +194,7 @@ export default function VerificationStatusPage() {
         {TABS.map((tab) => (
           <button
             key={tab}
-            onClick={() => setActiveTab(tab)}
+            onClick={() => selectTab(tab)}
             className={`rounded-full px-4 py-2 text-[13px] font-medium transition-colors ${
               activeTab === tab
                 ? 'bg-blue-600 text-white'
@@ -201,7 +223,7 @@ export default function VerificationStatusPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((row) => (
+            {pageItems.map((row) => (
               <tr key={row.item} className="border-b border-gray-50 last:border-none">
                 <td className="px-5 py-4">
                   <span className="flex items-center gap-2 text-[13.5px] font-medium text-ink-900">
@@ -219,7 +241,11 @@ export default function VerificationStatusPage() {
                 </td>
                 <td className="px-5 py-4 text-[13px] text-gray-400">{row.date}</td>
                 <td className="px-5 py-4">
-                  <button className="rounded-lg border border-gray-200 px-3 py-1.5 text-[12.5px] font-medium text-gray-600 hover:bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/mypage/specs/edit')}
+                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-[12.5px] font-medium text-gray-600 hover:bg-gray-50"
+                  >
                     {row.status === '반려' ? '다시 제출' : '상세보기'}
                   </button>
                 </td>
@@ -227,6 +253,7 @@ export default function VerificationStatusPage() {
             ))}
           </tbody>
         </table>
+        <RankPagination currentPage={currentPage} totalPages={totalPages} onChange={setPage} />
       </div>
 
       <div className="mt-5 flex flex-col items-start justify-between gap-3 rounded-2xl bg-blue-50 p-5 sm:flex-row sm:items-center">

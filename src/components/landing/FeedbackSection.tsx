@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronUp, Heart, Lock } from 'lucide-react'
 import FeedbackModal from './FeedbackModal'
 
@@ -55,12 +56,12 @@ export default function FeedbackSection() {
               피드백 남기기
               <ArrowRight className="h-4 w-4" />
             </button>
-            <a
-              href="#"
+            <Link
+              to="/feedback"
               className="rounded-full border border-gray-200 bg-white px-6 py-3.5 text-[15px] font-semibold text-ink-900 transition-colors hover:bg-gray-100"
             >
               개선 현황 보기
-            </a>
+            </Link>
           </div>
 
           <div className="mt-6 flex items-center gap-1.5 text-[13px] text-gray-400">
@@ -69,8 +70,8 @@ export default function FeedbackSection() {
           </div>
         </div>
 
-        <div className="relative">
-          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xl shadow-black/[0.03]">
+        <Link to="/feedback" className="relative block" aria-label="피드백 보드 전체 보기">
+          <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-xl shadow-black/[0.03] transition-transform hover:-translate-y-0.5">
             <div className="mb-4 flex gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
               <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
@@ -84,14 +85,14 @@ export default function FeedbackSection() {
 
             <div className="mt-4 flex gap-2">
               {TABS.map((tab, i) => (
-                <button
+                <span
                   key={tab}
                   className={`rounded-full px-3.5 py-1.5 text-[12.5px] font-medium ${
                     i === 0 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-500'
                   }`}
                 >
                   {tab}
-                </button>
+                </span>
               ))}
             </div>
 
@@ -131,7 +132,7 @@ export default function FeedbackSection() {
               여러분의 피드백이 피어오름의 성장을 만듭니다!
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />

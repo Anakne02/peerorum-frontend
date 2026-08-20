@@ -13,8 +13,8 @@ import { useAuth } from '../../context/AuthContext'
 
 const MENU_ITEMS = [
   { label: '마이페이지', to: '/mypage/specs', icon: User },
-  { label: '계정설정', to: '#', icon: Settings },
-  { label: '알림설정', to: '#', icon: Bell },
+  { label: '계정설정', to: '/mypage/settings/account', icon: Settings },
+  { label: '알림설정', to: '/mypage/settings/notifications', icon: Bell },
 ]
 
 export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' | 'dark' }) {

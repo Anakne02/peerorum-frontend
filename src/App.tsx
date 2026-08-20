@@ -3,12 +3,18 @@ import { AuthProvider } from './context/AuthContext'
 import RequireAdmin from './components/auth/RequireAdmin'
 import ScrollToTop from './components/ScrollToTop'
 import LandingPage from './pages/LandingPage'
+import FeedbackBoardPage from './pages/FeedbackBoardPage'
+import FeedbackDetailPage from './pages/FeedbackDetailPage'
 import LoginPage from './pages/auth/LoginPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from './pages/auth/ResetPasswordPage'
 import SignupPage from './pages/auth/SignupPage'
 import MySpecsPage from './pages/mypage/MySpecsPage'
 import SpecRegisterPage from './pages/mypage/SpecRegisterPage'
 import SpecEditPage from './pages/mypage/SpecEditPage'
 import VerificationStatusPage from './pages/mypage/VerificationStatusPage'
+import PersonalInfoEditPage from './pages/mypage/PersonalInfoEditPage'
+import SettingsPlaceholderPage from './pages/mypage/SettingsPlaceholderPage'
 import ComparePage from './pages/compare/ComparePage'
 import AnonymousProfileDetailPage from './pages/compare/AnonymousProfileDetailPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -36,14 +42,27 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/feedback" element={<FeedbackBoardPage />} />
+          <Route path="/feedback/:id" element={<FeedbackDetailPage />} />
 
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<SignupPage />} />
 
           <Route path="/mypage/specs" element={<MySpecsPage />} />
           <Route path="/mypage/specs/register" element={<SpecRegisterPage />} />
           <Route path="/mypage/specs/edit" element={<SpecEditPage />} />
           <Route path="/mypage/verification" element={<VerificationStatusPage />} />
+          <Route path="/mypage/verification/edit-info" element={<PersonalInfoEditPage />} />
+          <Route
+            path="/mypage/settings/account"
+            element={<SettingsPlaceholderPage title="계정 설정" />}
+          />
+          <Route
+            path="/mypage/settings/notifications"
+            element={<SettingsPlaceholderPage title="알림 설정" />}
+          />
 
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/compare/:studentId" element={<AnonymousProfileDetailPage />} />

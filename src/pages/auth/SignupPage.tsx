@@ -589,18 +589,18 @@ export default function SignupPage() {
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
-                onClick={() => finishSignup('/mypage/specs')}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-gray-200 py-3 text-[14.5px] font-semibold text-ink-900 hover:bg-gray-50"
+                onClick={() => finishSignup('/')}
+                className="w-full rounded-xl border border-gray-200 py-3 text-[14.5px] font-semibold text-ink-900 hover:bg-gray-50"
               >
-                마이페이지로 이동
-                <ArrowRight className="h-4 w-4" />
+                서비스 둘러보기
               </button>
               <button
                 type="button"
-                onClick={() => finishSignup('/')}
-                className="w-full rounded-xl bg-blue-600 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
+                onClick={() => finishSignup('/mypage/specs')}
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
               >
-                서비스 둘러보기
+                마이페이지로 이동
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
 

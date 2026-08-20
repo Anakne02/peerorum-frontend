@@ -45,10 +45,13 @@ export default function ComparisonSection() {
               {filter}
             </span>
           ))}
-          <button className="flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-[13px] font-semibold text-white">
+          <Link
+            to="/compare"
+            className="flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-[13px] font-semibold text-white hover:bg-ink-800"
+          >
             <ListFilter className="h-3.5 w-3.5" />
             조건 변경
-          </button>
+          </Link>
         </div>
 
         <div className="mt-8 overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm shadow-black/[0.02]">

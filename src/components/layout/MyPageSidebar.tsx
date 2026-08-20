@@ -9,8 +9,8 @@ const PRIMARY_ITEMS = [
 ]
 
 const SECONDARY_ITEMS = [
-  { label: '계정 설정', to: '#', icon: Settings },
-  { label: '알림 설정', to: '#', icon: Bell },
+  { label: '계정 설정', to: '/mypage/settings/account', icon: Settings },
+  { label: '알림 설정', to: '/mypage/settings/notifications', icon: Bell },
 ]
 
 export default function MyPageSidebar({ footer }: { footer?: ReactNode }) {
