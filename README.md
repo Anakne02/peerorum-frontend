@@ -27,4 +27,6 @@
 - 아이콘: lucide-react
 
 
-<img width="645" height="334" alt="image" src="https://github.com/user-attachments/assets/35ab2149-9c6b-48d3-8031-20b895782688" />
+<img width="461" height="614" alt="image" src="https://github.com/user-attachments/assets/60239e03-a7a8-4b73-8802-9d5be0b88318" />
+<img width="342" height="136" alt="image" src="https://github.com/user-attachments/assets/dd53ee4d-c16a-4c05-8412-76fb17edb495" />
+
