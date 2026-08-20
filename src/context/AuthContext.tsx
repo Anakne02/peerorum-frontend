@@ -1,13 +1,17 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 
+export type UserRole = 'user' | 'admin'
+
 interface AuthUser {
   name: string
   hasSpec: boolean
+  role: UserRole
 }
 
 interface AuthContextValue {
   user: AuthUser | null
   isLoggedIn: boolean
+  isAdmin: boolean
   login: (user?: Partial<AuthUser>) => void
   logout: () => void
   setHasSpec: (hasSpec: boolean) => void
@@ -19,7 +23,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
 
   const login: AuthContextValue['login'] = (partial) => {
-    setUser({ name: partial?.name ?? '유경', hasSpec: partial?.hasSpec ?? true })
+    setUser({
+      name: partial?.name ?? '유경',
+      hasSpec: partial?.hasSpec ?? true,
+      role: partial?.role ?? 'user',
+    })
   }
 
   const logout = () => setUser(null)
@@ -29,7 +37,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: user !== null, login, logout, setHasSpec }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoggedIn: user !== null,
+        isAdmin: user?.role === 'admin',
+        login,
+        logout,
+        setHasSpec,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

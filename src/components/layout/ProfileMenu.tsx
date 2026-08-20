@@ -1,6 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Bell, ChevronDown, ChevronRight, LogOut, Settings, User } from 'lucide-react'
+import {
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  User,
+} from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
 const MENU_ITEMS = [
@@ -10,7 +18,7 @@ const MENU_ITEMS = [
 ]
 
 export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
-  const { user, logout } = useAuth()
+  const { user, isAdmin, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -58,6 +66,22 @@ export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' |
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+12px)] z-50 w-52 overflow-hidden rounded-2xl border border-gray-100 bg-white py-2 text-ink-900 shadow-xl">
+          {isAdmin && (
+            <>
+              <Link
+                to="/admin"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between px-4 py-3 text-[14px] font-semibold text-blue-600 hover:bg-blue-50"
+              >
+                <span className="flex items-center gap-2.5">
+                  <LayoutDashboard className="h-4 w-4 text-blue-600" />
+                  관리자 페이지
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-blue-300" />
+              </Link>
+              <div className="my-1 border-t border-gray-100" />
+            </>
+          )}
           {MENU_ITEMS.map((item) => (
             <Link
               key={item.label}

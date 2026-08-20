@@ -1,14 +1,22 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
 import { useAuth } from '../../context/AuthContext'
 
+const ADMIN_EMAIL = 'admin@peeroreum.com'
+
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [email, setEmail] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    login()
+    if (email.trim().toLowerCase() === ADMIN_EMAIL) {
+      login({ name: '관리자', role: 'admin' })
+    } else {
+      login({ role: 'user' })
+    }
     navigate('/compare')
   }
 
@@ -20,6 +28,8 @@ export default function LoginPage() {
         <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleSubmit}>
           <input
             type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             placeholder="이메일 주소를 입력해주세요"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
           />
