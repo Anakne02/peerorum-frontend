@@ -13,11 +13,48 @@ import {
 } from 'lucide-react'
 import Logo from '../../components/ui/Logo'
 import PenguinMascot from '../../components/ui/PenguinMascot'
+import AuthLayout from '../../layouts/AuthLayout'
+import { LEGAL_TERMS } from '../../data/legalTerms'
 import { useAuth } from '../../context/AuthContext'
 
-type Step = 'terms' | 'account' | 'basic' | 'compare' | 'nickname' | 'complete'
+type Step = 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
 
-const STEP_ORDER: Step[] = ['terms', 'account', 'basic', 'compare', 'nickname']
+const STEP_ORDER: Step[] = ['terms', 'basic', 'compare', 'nickname']
+
+const TERMS = [
+  {
+    key: 'age',
+    title: '만 14세 이상입니다 (필수)',
+    body: '서비스는 개인정보보호법에 따라 만 14세 이상만 이용하실 수 있습니다.',
+  },
+  {
+    key: 'service',
+    title: '이용약관 (필수)',
+    body: LEGAL_TERMS['이용약관'].body,
+  },
+  {
+    key: 'privacy',
+    title: '개인정보처리방침 (필수)',
+    body: LEGAL_TERMS['개인정보처리방침'].body,
+  },
+  {
+    key: 'certification',
+    title: '스펙 인증 운영정책 (필수)',
+    body: `제 1조 (목적)
+본 운영정책은 피어오름(이하 "서비스")에서 제공하는 스펙 인증 서비스의 운영 기준 및 절차를 규정함으로써, 정확하고 신뢰할 수 있는 정보를 제공하는 것을 목적으로 합니다.
+
+제 2조 (인증 대상)
+회원은 다음 항목에 대하여 인증을 신청할 수 있습니다.
+· 학점`,
+  },
+  {
+    key: 'marketing',
+    title: '마케팅 정보 수신 동의 (선택)',
+    body: '이벤트, 혜택, 서비스 소식 등의 마케팅 정보를 이메일로 받아보실 수 있습니다. 동의하지 않아도 서비스 이용에는 제한이 없습니다.',
+  },
+]
+
+const REQUIRED_TERM_KEYS = TERMS.filter((t) => t.key !== 'marketing').map((t) => t.key)
 
 const GRADES = ['1학년', '2학년', '3학년', '4학년', '기타']
 
@@ -40,52 +77,6 @@ const SPEC_LINK_GUIDE = [
     description: '학점, 어학, 자격증 등 스펙을 등록하고 인증하여 비교를 시작해보세요.',
   },
 ]
-
-const TERMS = [
-  {
-    key: 'age',
-    title: '만 14세 이상입니다 (필수)',
-    body: '서비스는 개인정보보호법에 따라 만 14세 이상만 이용하실 수 있습니다.',
-  },
-  {
-    key: 'service',
-    title: '이용약관 (필수)',
-    body: `제 1조 (목적)
-본 약관은 대학생 스펙 인증 및 정보 공유 플랫폼(이하 "서비스")을 운영하는 운영팀(이하 "운영자")과 서비스를 이용하는 회원 간의 권리, 의무 및 책임사항과 서비스 이용에 필요한 사항을 규정함을 목적으로 합니다.
-
-제 2조 (정의)
-① "서비스"란 회원이 자신의 스펙을 등록하고 인증받아 익명으로 정보를 공유하고 비교할 수 있도록 제공되는 온라인 플랫폼을 의미합니다.
-② "회원"이란 본 약관에 동의하고 회원가입을 완료하여 서비스를 이용하는 자를 말합니다.`,
-  },
-  {
-    key: 'privacy',
-    title: '개인정보처리방침 (필수)',
-    body: `제 1조 (개인정보의 처리 목적)
-운영자는 다음의 목적을 위하여 개인정보를 처리합니다.
-1. 회원가입 및 회원 관리
-· 회원 식별 및 가입 의사 확인
-· 회원 자격 유지 및 관리
-· 중복 가입 및 부정 이용 방지
-· 회원 문의 및 불만 처리`,
-  },
-  {
-    key: 'certification',
-    title: '스펙 인증 운영정책 (필수)',
-    body: `제 1조 (목적)
-본 운영정책은 피어오름(이하 "서비스")에서 제공하는 스펙 인증 서비스의 운영 기준 및 절차를 규정함으로써, 정확하고 신뢰할 수 있는 정보를 제공하는 것을 목적으로 합니다.
-
-제 2조 (인증 대상)
-회원은 다음 항목에 대하여 인증을 신청할 수 있습니다.
-· 학점`,
-  },
-  {
-    key: 'marketing',
-    title: '마케팅 정보 수신 동의 (선택)',
-    body: '이벤트, 혜택, 서비스 소식 등의 마케팅 정보를 이메일로 받아보실 수 있습니다. 동의하지 않아도 서비스 이용에는 제한이 없습니다.',
-  },
-]
-
-const REQUIRED_TERM_KEYS = TERMS.filter((t) => t.key !== 'marketing').map((t) => t.key)
 
 function ProgressHeader({ step, totalSteps }: { step: number; totalSteps: number }) {
   return (
@@ -131,7 +122,7 @@ export default function SignupPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const [step, setStep] = useState<Step>('terms')
+  const [step, setStep] = useState<Step>('account')
   const [checked, setChecked] = useState<Record<string, boolean>>({
     age: false,
     service: false,
@@ -174,7 +165,7 @@ export default function SignupPage() {
       return
     }
     setPasswordError('')
-    setStep('basic')
+    setStep('terms')
   }
 
   const fillRandomNickname = () => {
@@ -185,6 +176,103 @@ export default function SignupPage() {
   const finishSignup = (destination: '/mypage/specs' | '/') => {
     login({ name, hasSpec: false, role: 'user' })
     navigate(destination)
+  }
+
+  if (step === 'account') {
+    return (
+      <AuthLayout>
+        <div>
+          <h1 className="text-[22px] font-bold text-ink-900">회원가입</h1>
+          <p className="mt-1.5 text-[13.5px] text-gray-500">
+            피어오름 계정을 만들어 서비스를 이용해보세요.
+          </p>
+
+          <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleAccountSubmit}>
+            <input
+              type="text"
+              required
+              minLength={2}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="이름을 입력해주세요"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
+            />
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="이메일을 입력해주세요"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
+            />
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호를 입력해주세요"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
+            />
+            <input
+              type="password"
+              required
+              value={passwordConfirm}
+              onChange={(e) => setPasswordConfirm(e.target.value)}
+              placeholder="비밀번호를 한 번 더 입력해주세요"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
+            />
+            {passwordError && (
+              <p className="text-[11.5px] font-medium text-rose-500">{passwordError}</p>
+            )}
+
+            <button
+              type="submit"
+              className="mt-1 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              회원가입
+            </button>
+          </form>
+
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-100" />
+            <span className="text-[12px] text-gray-400">또는</span>
+            <div className="h-px flex-1 bg-gray-100" />
+          </div>
+
+          <div className="flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => setStep('terms')}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-[14px] font-medium text-ink-900 hover:bg-gray-50"
+            >
+              <span className="text-[15px] font-bold text-[#4285F4]">G</span>
+              Google로 가입하기
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep('terms')}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-[#FEE500] py-3 text-[14px] font-medium text-[#191600] hover:brightness-95"
+            >
+              카카오로 가입하기
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep('terms')}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-[14px] font-medium text-ink-900 hover:bg-gray-50"
+            >
+              Apple로 가입하기
+            </button>
+          </div>
+
+          <p className="mt-6 text-center text-[13px] text-gray-500">
+            이미 계정이 있으신가요?{' '}
+            <Link to="/login" className="font-semibold text-blue-600 hover:underline">
+              로그인
+            </Link>
+          </p>
+        </div>
+      </AuthLayout>
+    )
   }
 
   const maxWidthClassName = step === 'terms' || step === 'complete' ? 'max-w-2xl' : 'max-w-[440px]'
@@ -253,7 +341,7 @@ export default function SignupPage() {
             <button
               type="button"
               disabled={!allRequiredChecked}
-              onClick={() => setStep('account')}
+              onClick={() => setStep('basic')}
               className="mt-6 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
               동의하고 계속하기
@@ -261,92 +349,9 @@ export default function SignupPage() {
           </div>
         )}
 
-        {step === 'account' && (
-          <div>
-            <StepHeader title="회원가입" onBack={() => setStep('terms')} stepIndex={stepIndex} />
-
-            <h2 className="mt-6 text-[19px] font-bold text-ink-900">계정 정보를 입력해주세요</h2>
-            <p className="mt-1.5 text-[13.5px] text-gray-500">
-              실명은 본인 확인 및 스펙 인증을 위해 반드시 필요해요.
-            </p>
-
-            <form className="mt-6 flex flex-col gap-3.5" onSubmit={handleAccountSubmit}>
-              <div>
-                <label className="mb-1.5 block text-[13px] font-medium text-ink-900">
-                  이름(실명) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  minLength={2}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="실명을 입력해주세요"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
-                />
-                <p className="mt-1 text-[11.5px] text-gray-400">
-                  실명은 공개되지 않으며, 본인 확인 및 스펙 인증 용도로만 사용돼요.
-                </p>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[13px] font-medium text-ink-900">
-                  이메일 *
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="이메일을 입력해주세요"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[13px] font-medium text-ink-900">
-                  비밀번호 *
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="8자 이상 입력해주세요"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[13px] font-medium text-ink-900">
-                  비밀번호 확인 *
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  placeholder="비밀번호를 한 번 더 입력해주세요"
-                  className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
-                />
-                {passwordError && (
-                  <p className="mt-1 text-[11.5px] font-medium text-rose-500">{passwordError}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                className="mt-2 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700"
-              >
-                다음 →
-              </button>
-            </form>
-          </div>
-        )}
-
         {step === 'basic' && (
           <div>
-            <StepHeader title="회원가입" onBack={() => setStep('account')} stepIndex={stepIndex} />
+            <StepHeader title="회원가입" onBack={() => setStep('terms')} stepIndex={stepIndex} />
 
             <h2 className="mt-6 text-[19px] font-bold text-ink-900">기본 정보를 입력해주세요</h2>
             <p className="mt-1.5 text-[13.5px] text-gray-500">정확한 비교를 위해 필요한 정보입니다.</p>
