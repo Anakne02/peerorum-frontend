@@ -4,32 +4,20 @@ import {
   Award,
   ArrowUpDown,
   Briefcase,
-  Building2,
   CheckCircle2,
   Clock,
   FileText,
   GraduationCap,
   Lock,
   MinusCircle,
-  Target,
-  UserPen,
   Users,
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
-import PenguinMascot from '../../components/ui/PenguinMascot'
 import PenguinHero from '../../components/ui/PenguinHero'
 import RankPagination from '../../components/compare/RankPagination'
 import { useAuth } from '../../context/AuthContext'
 
 const PAGE_SIZE = 5
-
-const PROFILE_FIELDS = [
-  { icon: Building2, label: '학교', value: '단국대학교' },
-  { icon: FileText, label: '학과', value: '경영학과' },
-  { icon: GraduationCap, label: '학년', value: '4학년' },
-  { icon: Target, label: '희망 직무', value: '마케팅' },
-  { icon: Award, label: '학점', value: '4.29 / 4.5' },
-]
 
 const SUMMARY = [
   { label: '총 등록 항목 수', value: 12, icon: FileText, tone: 'bg-blue-50 text-blue-600' },
@@ -134,46 +122,6 @@ export default function VerificationStatusPage() {
         </span>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02]">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <PenguinMascot className="h-14 w-14" />
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[16px] font-bold text-ink-900">유경</span>
-                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">
-                  익명 · 열정펭귄
-                </span>
-              </div>
-              <p className="mt-0.5 text-[13px] text-gray-500">단국대학교 경영학과 4학년</p>
-              <p className="text-[12.5px] text-gray-400">marketing@dankook.ac.kr</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => navigate('/mypage/verification/edit-info')}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-[13px] font-medium text-ink-900 hover:bg-gray-50"
-          >
-            <UserPen className="h-3.5 w-3.5" />
-            개인정보 수정
-          </button>
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 sm:grid-cols-5">
-          {PROFILE_FIELDS.map((field) => (
-            <div key={field.label} className="flex items-center gap-2">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-gray-500">
-                <field.icon className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-[11.5px] text-gray-400">{field.label}</p>
-                <p className="text-[13px] font-bold text-ink-900">{field.value}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       <h2 className="mb-4 mt-8 text-[16px] font-bold text-ink-900">인증 현황 요약</h2>
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {SUMMARY.map((stat) => (
@@ -256,17 +204,12 @@ export default function VerificationStatusPage() {
         <RankPagination currentPage={currentPage} totalPages={totalPages} onChange={setPage} />
       </div>
 
-      <div className="mt-5 flex flex-col items-start justify-between gap-3 rounded-2xl bg-blue-50 p-5 sm:flex-row sm:items-center">
-        <div className="flex items-start gap-2.5">
-          <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-blue-600" />
-          <p className="text-[13.5px] text-blue-700">
-            <span className="font-semibold">인증이 반려되었나요?</span> 요청하신 인증이 반려된
-            경우, 사유를 확인하고 다시 제출해주세요.
-          </p>
-        </div>
-        <button className="shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-blue-700">
-          반려 내역 확인하기 →
-        </button>
+      <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-blue-50 p-5">
+        <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-blue-600" />
+        <p className="text-[13.5px] text-blue-700">
+          <span className="font-semibold">인증이 반려되었나요?</span> 요청하신 인증이 반려된
+          경우, 사유를 확인하고 다시 제출해주세요.
+        </p>
       </div>
     </MyPageLayout>
   )

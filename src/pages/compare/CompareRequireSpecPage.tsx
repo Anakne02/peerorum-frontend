@@ -68,9 +68,6 @@ export default function CompareRequireSpecPage() {
             >
               내 스펙 등록하기
             </button>
-            <button className="rounded-xl border border-gray-200 px-6 py-3 text-[14.5px] font-semibold text-ink-900 hover:bg-gray-50">
-              기존 스펙 불러오기
-            </button>
           </div>
         </div>
 

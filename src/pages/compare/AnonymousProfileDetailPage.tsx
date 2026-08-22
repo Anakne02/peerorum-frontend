@@ -4,14 +4,12 @@ import {
   Award,
   ArrowLeft,
   Briefcase,
-  Flag,
   Globe2,
   GraduationCap,
   Info,
   Lock,
   ShieldCheck,
   Sparkles,
-  UserPlus,
   Users,
 } from 'lucide-react'
 import Header from '../../components/layout/Header'
@@ -123,17 +121,6 @@ export default function AnonymousProfileDetailPage() {
                 <Info className="h-3 w-3" />
               </p>
             </div>
-          </div>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-[13px] font-medium text-ink-900 hover:bg-gray-50">
-              <UserPlus className="h-3.5 w-3.5" />
-              관심 등록
-            </button>
-            <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-[13px] font-medium text-gray-500 hover:bg-gray-50">
-              <Flag className="h-3.5 w-3.5" />
-              이 학생을 신고하기
-            </button>
           </div>
         </div>
 
@@ -335,32 +322,19 @@ export default function AnonymousProfileDetailPage() {
           </div>
 
           <div className="flex flex-col gap-4">
+            <div className="invisible flex gap-2" aria-hidden="true">
+              <span className="border-b-2 border-transparent px-1 pb-2.5 text-[14px] font-semibold">
+                상세 스펙
+              </span>
+            </div>
+
             <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02]">
               <p className="flex items-center gap-1 text-[13.5px] font-bold text-ink-900">
                 나와의 비교
                 <Info className="h-3.5 w-3.5 text-gray-300" />
               </p>
 
-              <div className="mt-3 rounded-xl bg-blue-50 p-3.5">
-                <p className="text-[12.5px] leading-relaxed text-blue-700">
-                  <span className="font-semibold">{student.anonId}</span>님은 나와 같은 조건의 학생
-                  중 <span className="font-semibold">상위 {student.detail.overallPercentile}%</span>
-                  입니다.
-                </p>
-                <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-white">
-                  <div
-                    className="h-full rounded-full bg-blue-600"
-                    style={{ width: `${100 - student.detail.overallPercentile}%` }}
-                  />
-                </div>
-                <div className="mt-1 flex justify-between text-[10.5px] text-blue-500">
-                  <span>상위권</span>
-                  <span>중위권</span>
-                  <span>하위권</span>
-                </div>
-              </div>
-
-              <div className="mt-4 grid grid-cols-[1fr_1fr_1fr] gap-2 text-[11px] font-semibold text-gray-400">
+              <div className="mt-3 grid grid-cols-[1fr_1fr_1fr] gap-2 text-[11px] font-semibold text-gray-400">
                 <span />
                 <span className="text-center">나</span>
                 <span className="text-center text-blue-600">{student.anonId}</span>
@@ -377,28 +351,22 @@ export default function AnonymousProfileDetailPage() {
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02]">
-              <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                <p className="text-[13.5px] font-bold text-ink-900">AI 맞춤 분석</p>
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
-                  준비 중
-                </span>
+              <div className="mt-4 border-t border-gray-100 pt-4">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  <p className="text-[13.5px] font-bold text-ink-900">AI 맞춤 분석</p>
+                  <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-600">
+                    준비 중
+                  </span>
+                </div>
+                <p className="mt-2.5 text-[12.5px] leading-relaxed text-gray-500">
+                  AI가 나와 이 학생의 스펙을 분석해 강점과 보완점을 짚어주는 기능을 준비하고 있어요.
+                  출시되면 가장 먼저 알려드릴게요.
+                </p>
               </div>
-              <p className="mt-2.5 text-[12.5px] leading-relaxed text-gray-500">
-                AI가 나와 이 학생의 스펙을 분석해 강점과 보완점을 짚어주는 기능을 준비하고 있어요.
-                출시되면 가장 먼저 알려드릴게요.
-              </p>
-              <Link
-                to="/compare"
-                className="mt-4 block rounded-lg bg-blue-600 py-2.5 text-center text-[13px] font-semibold text-white hover:bg-blue-700"
-              >
-                다른 학생 보기 →
-              </Link>
             </div>
           </div>
         </div>

@@ -5,7 +5,6 @@ import {
   ChevronDown,
   ChevronRight,
   Filter,
-  Lightbulb,
   List,
   RotateCcw,
   Search,
@@ -17,6 +16,7 @@ import ProfileMenu from '../../components/layout/ProfileMenu'
 import RankBadge from '../../components/compare/RankBadge'
 import RankPagination from '../../components/compare/RankPagination'
 import { RANKED_STUDENTS } from '../../data/mockRankings'
+import { JOB_CATEGORIES } from '../../data/jobCategories'
 
 const HERO_STEPS = [
   { icon: Filter, label: '조건 선택' },
@@ -33,9 +33,11 @@ const NAV_ITEMS = [
 
 const GRADES = ['1학년', '2학년', '3학년', '4학년']
 const GPA_RANGES = ['4.5 ~ 4.0', '3.9 ~ 3.5', '3.4 ~ 3.0', '2.9 ~ 2.5', '2.4 이하']
+const COMPARE_CRITERIA = ['전공 학점만', '평균 학점만']
 const DEFAULT_GRADE = '4학년'
 const DEFAULT_GPA_RANGE = GPA_RANGES[0]
-const RANK_PAGE_SIZE = 7
+const DEFAULT_COMPARE_CRITERION = COMPARE_CRITERIA[0]
+const RANK_PAGE_SIZE = 10
 
 function isInGpaRange(gpa: number, range: string) {
   switch (range) {
@@ -57,9 +59,14 @@ export default function CompareSpec2Page() {
 
   const [pendingGrade, setPendingGrade] = useState(DEFAULT_GRADE)
   const [pendingGpaRange, setPendingGpaRange] = useState(DEFAULT_GPA_RANGE)
+  const [pendingJob, setPendingJob] = useState<string | null>(null)
+  const [pendingCompareCriterion, setPendingCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
   const [appliedGrade, setAppliedGrade] = useState(DEFAULT_GRADE)
   const [appliedGpaRange, setAppliedGpaRange] = useState(DEFAULT_GPA_RANGE)
+  const [appliedCompareCriterion, setAppliedCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
   const [page, setPage] = useState(1)
+
+  const gpaColumnLabel = appliedCompareCriterion === '전공 학점만' ? '전공 학점' : '평균 학점'
 
   const filteredStudents = useMemo(
     () =>
@@ -81,14 +88,18 @@ export default function CompareSpec2Page() {
   const handleSearch = () => {
     setAppliedGrade(pendingGrade)
     setAppliedGpaRange(pendingGpaRange)
+    setAppliedCompareCriterion(pendingCompareCriterion)
     setPage(1)
   }
 
   const handleReset = () => {
     setPendingGrade(DEFAULT_GRADE)
     setPendingGpaRange(DEFAULT_GPA_RANGE)
+    setPendingJob(null)
+    setPendingCompareCriterion(DEFAULT_COMPARE_CRITERION)
     setAppliedGrade(DEFAULT_GRADE)
     setAppliedGpaRange(DEFAULT_GPA_RANGE)
+    setAppliedCompareCriterion(DEFAULT_COMPARE_CRITERION)
     setPage(1)
   }
 
@@ -149,7 +160,7 @@ export default function CompareSpec2Page() {
         </div>
       </div>
 
-      <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[280px_1fr]">
+      <main className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[336px_1fr]">
         <aside className="h-fit rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02]">
           <p className="mb-4 text-[14px] font-bold text-ink-900">비교 조건 선택</p>
 
@@ -193,18 +204,23 @@ export default function CompareSpec2Page() {
 
             <div>
               <label className="mb-1.5 block text-[12.5px] font-medium text-gray-500">
-                3. 세부 전공 (선택)
+                3. 희망 직무
               </label>
-              <div className="relative">
-                <select
-                  defaultValue=""
-                  className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] text-gray-400 outline-none focus:border-blue-500"
-                >
-                  <option value="" disabled>
-                    세부 전공을 선택하세요
-                  </option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <div className="grid grid-cols-4 gap-1">
+                {JOB_CATEGORIES.map((job) => (
+                  <button
+                    key={job}
+                    type="button"
+                    onClick={() => setPendingJob((prev) => (prev === job ? null : job))}
+                    className={`rounded-md border px-1.5 py-1.5 text-[11px] font-medium leading-tight transition-colors ${
+                      job === pendingJob
+                        ? 'border-blue-600 bg-blue-50 text-blue-600'
+                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {job}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -214,12 +230,13 @@ export default function CompareSpec2Page() {
               </label>
               <div className="relative">
                 <select
-                  defaultValue="전체"
+                  value={pendingCompareCriterion}
+                  onChange={(e) => setPendingCompareCriterion(e.target.value)}
                   className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] text-ink-900 outline-none focus:border-blue-500"
                 >
-                  <option>전체</option>
-                  <option>전공 학점만</option>
-                  <option>평균 학점만</option>
+                  {COMPARE_CRITERIA.map((criterion) => (
+                    <option key={criterion}>{criterion}</option>
+                  ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
               </div>
@@ -299,7 +316,7 @@ export default function CompareSpec2Page() {
                 <tr className="border-b border-gray-100 text-[12px] text-gray-400">
                   <th className="px-4 py-3 font-medium">순위</th>
                   <th className="px-4 py-3 font-medium">익명 ID</th>
-                  <th className="px-4 py-3 font-medium">학점 (4.5)</th>
+                  <th className="px-4 py-3 font-medium">{gpaColumnLabel} (4.5)</th>
                   <th className="px-4 py-3 font-medium">어학</th>
                   <th className="px-4 py-3 font-medium">자격증</th>
                   <th className="px-4 py-3 font-medium">교내활동</th>
@@ -331,14 +348,8 @@ export default function CompareSpec2Page() {
                       <p className="text-[13.5px] font-bold text-ink-900">{student.gpa}</p>
                       <p className="text-[11px] text-blue-600">상위 {student.gpaPercentile}%</p>
                     </td>
-                    <td className="px-4 py-3.5">
-                      <p className="text-[13px] text-ink-900">{student.lang}</p>
-                      <p className="text-[11px] text-blue-600">상위 {student.langPercentile}%</p>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <p className="text-[13px] text-ink-900">{student.certs}</p>
-                      <p className="text-[11px] text-blue-600">상위 {student.certsPercentile}%</p>
-                    </td>
+                    <td className="px-4 py-3.5 text-[13px] text-ink-900">{student.lang}</td>
+                    <td className="px-4 py-3.5 text-[13px] text-ink-900">{student.certs}</td>
                     <td className="px-4 py-3.5 text-[13px] text-ink-900">
                       {Math.max(1, student.rank % 3 + 1)}개
                     </td>
@@ -356,28 +367,6 @@ export default function CompareSpec2Page() {
             <RankPagination currentPage={currentPage} totalPages={totalPages} onChange={setPage} />
           </div>
           )}
-
-          <div className="mt-4 flex flex-col items-start justify-between gap-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02] sm:flex-row sm:items-center">
-            <div className="flex items-start gap-2.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
-                <Lightbulb className="h-4.5 w-4.5" />
-              </span>
-              <div>
-                <p className="text-[14px] font-semibold text-ink-900">
-                  나의 스펙을 등록하고 정확한 비교를 받아보세요
-                </p>
-                <p className="text-[12.5px] text-gray-500">
-                  내 스펙을 등록하면 나의 위치를 더 정확하게 확인할 수 있어요.
-                </p>
-              </div>
-            </div>
-            <Link
-              to="/mypage/specs"
-              className="shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-blue-700"
-            >
-              내 스펙 등록하기 →
-            </Link>
-          </div>
         </section>
       </main>
 

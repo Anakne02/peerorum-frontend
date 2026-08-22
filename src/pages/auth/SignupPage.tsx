@@ -15,6 +15,7 @@ import Logo from '../../components/ui/Logo'
 import PenguinMascot from '../../components/ui/PenguinMascot'
 import AuthLayout from '../../layouts/AuthLayout'
 import { LEGAL_TERMS } from '../../data/legalTerms'
+import { JOB_CATEGORIES } from '../../data/jobCategories'
 import { useAuth } from '../../context/AuthContext'
 
 type Step = 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
@@ -137,7 +138,7 @@ export default function SignupPage() {
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [passwordError, setPasswordError] = useState('')
 
-  const [school, setSchool] = useState('')
+  const [school] = useState('단국대학교')
   const [department, setDepartment] = useState('')
   const [grade, setGrade] = useState('4학년')
 
@@ -364,20 +365,9 @@ export default function SignupPage() {
               }}
             >
               <div>
-                <label className="mb-1.5 block text-[13px] font-medium text-ink-900">학교 *</label>
-                <div className="relative">
-                  <select
-                    required
-                    value={school}
-                    onChange={(e) => setSchool(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-gray-200 px-4 py-3 text-[14px] text-ink-900 outline-none focus:border-blue-500"
-                  >
-                    <option value="" disabled>
-                      학교를 선택해주세요
-                    </option>
-                    <option>단국대학교</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <label className="mb-1.5 block text-[13px] font-medium text-ink-900">학교</label>
+                <div className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-[14px] text-ink-900">
+                  {school}
                 </div>
               </div>
 
@@ -452,23 +442,21 @@ export default function SignupPage() {
                 <label className="mb-1.5 block text-[13px] font-medium text-ink-900">
                   희망 직무 *
                 </label>
-                <div className="relative">
-                  <select
-                    required
-                    value={desiredJob}
-                    onChange={(e) => setDesiredJob(e.target.value)}
-                    className="w-full appearance-none rounded-xl border border-gray-200 px-4 py-3 text-[14px] text-ink-900 outline-none focus:border-blue-500"
-                  >
-                    <option value="" disabled>
-                      희망 직무를 선택해주세요
-                    </option>
-                    <option>마케팅</option>
-                    <option>영업</option>
-                    <option>기획</option>
-                    <option>개발</option>
-                    <option>디자인</option>
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <div className="flex flex-wrap gap-2">
+                  {JOB_CATEGORIES.map((job) => (
+                    <button
+                      type="button"
+                      key={job}
+                      onClick={() => setDesiredJob(job)}
+                      className={`rounded-full border px-4 py-2 text-[13px] font-medium transition-colors ${
+                        desiredJob === job
+                          ? 'border-blue-600 bg-blue-50 text-blue-600'
+                          : 'border-gray-200 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {job}
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -481,7 +469,8 @@ export default function SignupPage() {
 
               <button
                 type="submit"
-                className="mt-1 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700"
+                disabled={!desiredJob}
+                className="mt-1 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 다음 →
               </button>

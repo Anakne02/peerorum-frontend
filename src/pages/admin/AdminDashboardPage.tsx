@@ -1,16 +1,10 @@
-import { ClipboardList, Flag, UserPlus, Users } from 'lucide-react'
+import { ClipboardList, UserPlus, Users } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout'
 import StatTile from '../../components/admin/StatTile'
 import SignupTrendChart from '../../components/admin/SignupTrendChart'
 import GenderDonutChart from '../../components/admin/GenderDonutChart'
 import PenguinHero from '../../components/ui/PenguinHero'
-import { GENDER_DISTRIBUTION, RECENT_REPORTS, RECENT_SIGNUPS, SIGNUP_TREND } from '../../data/mockAdmin'
-
-const REPORT_STATUS_STYLE: Record<string, string> = {
-  '처리 대기': 'bg-rose-50 text-rose-600',
-  '처리 중': 'bg-blue-50 text-blue-600',
-  '처리 완료': 'bg-emerald-50 text-emerald-600',
-}
+import { GENDER_DISTRIBUTION, RECENT_SIGNUPS, SIGNUP_TREND } from '../../data/mockAdmin'
 
 export default function AdminDashboardPage() {
   const totalGender = GENDER_DISTRIBUTION.reduce((sum, item) => sum + item.value, 0)
@@ -27,7 +21,7 @@ export default function AdminDashboardPage() {
         <PenguinHero className="h-20 w-20 shrink-0" />
       </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatTile
           icon={Users}
           iconClassName="bg-blue-50 text-blue-600"
@@ -49,13 +43,6 @@ export default function AdminDashboardPage() {
           value="1,842건"
           delta={{ direction: 'up', text: '156 (전일 대비)' }}
         />
-        <StatTile
-          icon={Flag}
-          iconClassName="bg-orange-50 text-orange-600"
-          label="신고 처리 건수"
-          value="32건"
-          delta={{ direction: 'down', text: '5 (전일 대비)' }}
-        />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
@@ -74,7 +61,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-4 grid gap-4">
         <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm shadow-black/[0.02]">
           <div className="flex items-center justify-between">
             <p className="text-[14.5px] font-bold text-ink-900">최근 가입 사용자</p>
@@ -96,35 +83,6 @@ export default function AdminDashboardPage() {
                   {signup.time}
                   <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">
                     일반
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm shadow-black/[0.02]">
-          <div className="flex items-center justify-between">
-            <p className="text-[14.5px] font-bold text-ink-900">최근 신고 내역</p>
-            <span className="text-[12.5px] font-medium text-blue-600">전체 보기</span>
-          </div>
-          <ul className="mt-4 flex flex-col gap-3.5">
-            {RECENT_REPORTS.map((report, index) => (
-              <li key={`${report.title}-${index}`} className="flex items-center justify-between text-[13.5px]">
-                <span className="flex items-center gap-2.5">
-                  <Flag className="h-4 w-4 text-gray-300" />
-                  <span>
-                    <span className="font-semibold text-ink-900">{report.title}</span>
-                    <br />
-                    <span className="text-[12px] text-gray-400">신고자: {report.reporter}</span>
-                  </span>
-                </span>
-                <span className="flex flex-col items-end gap-1 text-gray-400">
-                  {report.time}
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${REPORT_STATUS_STYLE[report.status]}`}
-                  >
-                    {report.status}
                   </span>
                 </span>
               </li>

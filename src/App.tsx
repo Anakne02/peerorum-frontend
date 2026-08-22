@@ -14,7 +14,7 @@ import SpecRegisterPage from './pages/mypage/SpecRegisterPage'
 import SpecEditPage from './pages/mypage/SpecEditPage'
 import VerificationStatusPage from './pages/mypage/VerificationStatusPage'
 import PersonalInfoEditPage from './pages/mypage/PersonalInfoEditPage'
-import SettingsPlaceholderPage from './pages/mypage/SettingsPlaceholderPage'
+import AccountSettingsPage from './pages/mypage/AccountSettingsPage'
 import ComparePage from './pages/compare/ComparePage'
 import AnonymousProfileDetailPage from './pages/compare/AnonymousProfileDetailPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -25,7 +25,6 @@ import AdminPlaceholderPage from './pages/admin/AdminPlaceholderPage'
 
 const ADMIN_PLACEHOLDER_ROUTES = [
   { path: '/admin/spec-cards', title: '스펙 카드 관리' },
-  { path: '/admin/reports', title: '신고 관리' },
   { path: '/admin/notices', title: '공지사항 관리' },
   { path: '/admin/stats', title: '서비스 통계' },
   { path: '/admin/analytics', title: '사용자 분석' },
@@ -55,14 +54,7 @@ function App() {
           <Route path="/mypage/specs/edit" element={<SpecEditPage />} />
           <Route path="/mypage/verification" element={<VerificationStatusPage />} />
           <Route path="/mypage/verification/edit-info" element={<PersonalInfoEditPage />} />
-          <Route
-            path="/mypage/settings/account"
-            element={<SettingsPlaceholderPage title="계정 설정" />}
-          />
-          <Route
-            path="/mypage/settings/notifications"
-            element={<SettingsPlaceholderPage title="알림 설정" />}
-          />
+          <Route path="/mypage/settings/account" element={<AccountSettingsPage />} />
 
           <Route path="/compare" element={<ComparePage />} />
           <Route path="/compare/:studentId" element={<AnonymousProfileDetailPage />} />

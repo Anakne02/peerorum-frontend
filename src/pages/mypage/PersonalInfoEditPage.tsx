@@ -22,7 +22,7 @@ export default function PersonalInfoEditPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/mypage/verification')
+    navigate('/mypage/settings/account')
   }
 
   return (
@@ -117,7 +117,7 @@ export default function PersonalInfoEditPage() {
         <div className="mt-6 flex justify-end gap-2 border-t border-gray-100 pt-5">
           <button
             type="button"
-            onClick={() => navigate('/mypage/verification')}
+            onClick={() => navigate('/mypage/settings/account')}
             className="rounded-lg border border-gray-200 px-5 py-2.5 text-[13.5px] font-medium text-ink-900 hover:bg-gray-50"
           >
             취소

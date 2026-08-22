@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  Bell,
   ChevronDown,
   ChevronRight,
   LayoutDashboard,
@@ -14,7 +13,6 @@ import { useAuth } from '../../context/AuthContext'
 const MENU_ITEMS = [
   { label: '마이페이지', to: '/mypage/specs', icon: User },
   { label: '계정설정', to: '/mypage/settings/account', icon: Settings },
-  { label: '알림설정', to: '/mypage/settings/notifications', icon: Bell },
 ]
 
 export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
@@ -38,14 +36,6 @@ export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' |
 
   return (
     <div ref={rootRef} className="relative flex items-center gap-4">
-      <button
-        type="button"
-        aria-label="알림"
-        className={isDark ? 'text-white/80 hover:text-white' : 'text-gray-400 hover:text-gray-600'}
-      >
-        <Bell className="h-5 w-5" />
-      </button>
-
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
