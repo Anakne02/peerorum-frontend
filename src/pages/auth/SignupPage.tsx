@@ -42,12 +42,12 @@ const TERMS = [
   {
     key: 'certification',
     title: '스펙 인증 운영정책 (필수)',
-    body: `제 1조 (목적)
-본 운영정책은 피어오름(이하 "서비스")에서 제공하는 스펙 인증 서비스의 운영 기준 및 절차를 규정함으로써, 정확하고 신뢰할 수 있는 정보를 제공하는 것을 목적으로 합니다.
-
-제 2조 (인증 대상)
-회원은 다음 항목에 대하여 인증을 신청할 수 있습니다.
-· 학점`,
+    body: LEGAL_TERMS['스펙 인증 운영정책'].body,
+  },
+  {
+    key: 'anonymous',
+    title: '익명 정보 제공 및 활용 동의 (필수)',
+    body: LEGAL_TERMS['익명 정보 제공 및 활용 동의'].body,
   },
   {
     key: 'marketing',
@@ -130,6 +130,7 @@ export default function SignupPage() {
     service: false,
     privacy: false,
     certification: false,
+    anonymous: false,
     marketing: false,
   })
 
@@ -151,7 +152,14 @@ export default function SignupPage() {
   const allChecked = Object.values(checked).every(Boolean)
   const toggleAll = () => {
     const next = !allChecked
-    setChecked({ age: next, service: next, privacy: next, certification: next, marketing: next })
+    setChecked({
+      age: next,
+      service: next,
+      privacy: next,
+      certification: next,
+      anonymous: next,
+      marketing: next,
+    })
   }
 
   const stepIndex = STEP_ORDER.indexOf(step)
