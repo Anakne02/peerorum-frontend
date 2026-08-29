@@ -7,6 +7,8 @@ import {
   GraduationCap,
   Globe2,
   Info,
+  Loader2,
+  Paperclip,
   Plus,
   ShieldCheck,
   Trash2,
@@ -16,6 +18,8 @@ import {
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import { useAuth } from '../../context/AuthContext'
+import EvidenceUploadModal from '../../components/mypage/EvidenceUploadModal'
+import gpaExampleImage from '../../assets/images/gpa-example.png'
 
 type FieldType = 'text' | 'number' | 'date' | 'textarea' | 'select' | 'buttongroup'
 
@@ -35,6 +39,11 @@ interface CategoryConfig {
   description: string
   addLabel: string
   fields: FieldConfig[]
+  hasVerification?: boolean
+  fileUpload?: {
+    exampleImage?: string
+    description: string
+  }
 }
 
 const GRADE_OPTIONS = ['1학년', '2학년', '3학년', '4학년']
@@ -44,15 +53,18 @@ const CATEGORIES: CategoryConfig[] = [
     key: 'gpa',
     icon: GraduationCap,
     title: '학점 정보 입력',
-    description: '백분율/4.5 만점 기준으로 입력해주세요.',
+    description: '누적성적 조회 화면 기준으로 입력해주세요.',
     addLabel: '학점 추가',
     fields: [
-      { key: 'scoreType', label: '점수 방식', type: 'select', options: ['4.5 만점', '4.3 만점', '100점 만점'] },
-      { key: 'gpa', label: '학점', type: 'number', required: true, placeholder: '4.29' },
-      { key: 'percentile', label: '백분율 (환산)', type: 'number', placeholder: '95.3' },
-      { key: 'majorAverage', label: '전공 평균 (선택)', type: 'number', placeholder: '3.85' },
+      { key: 'gpaAverage', label: '평점평균', type: 'number', required: true, placeholder: '4.29' },
+      { key: 'convertedScore', label: '환산점수', type: 'number', placeholder: '95.3' },
+      { key: 'majorGpaAverage', label: '전공평점평균 (선택)', type: 'number', placeholder: '3.85' },
       { key: 'grade', label: '이수 학년', type: 'select', options: GRADE_OPTIONS, required: true },
     ],
+    fileUpload: {
+      exampleImage: gpaExampleImage,
+      description: '학교 포털의 \'누적성적 조회\' 화면을 캡처해 첨부해주세요.',
+    },
   },
   {
     key: 'language',
@@ -65,6 +77,9 @@ const CATEGORIES: CategoryConfig[] = [
       { key: 'score', label: '점수', type: 'text', required: true, placeholder: '예) 900, IH' },
       { key: 'date', label: '취득일', type: 'date' },
     ],
+    fileUpload: {
+      description: '성적표(점수 확인 페이지) 캡처본을 첨부해주세요.',
+    },
   },
   {
     key: 'certificate',
@@ -77,6 +92,9 @@ const CATEGORIES: CategoryConfig[] = [
       { key: 'issuer', label: '발급기관', type: 'text', placeholder: '예) 한국데이터산업진흥원' },
       { key: 'date', label: '취득일', type: 'date' },
     ],
+    fileUpload: {
+      description: '자격증 사본 또는 발급 확인서를 첨부해주세요.',
+    },
   },
   {
     key: 'activity',
@@ -84,6 +102,7 @@ const CATEGORIES: CategoryConfig[] = [
     title: '대외활동 입력',
     description: '대외활동 및 봉사활동 경험을 입력해주세요.',
     addLabel: '대외활동 추가',
+    hasVerification: false,
     fields: [
       { key: 'name', label: '활동명', type: 'text', required: true, placeholder: '예) 마케팅 서포터즈 3기' },
       { key: 'period', label: '활동 기간', type: 'text', placeholder: '예) 2024.03 - 2024.11' },
@@ -96,6 +115,7 @@ const CATEGORIES: CategoryConfig[] = [
     title: '인턴 경험 입력',
     description: '인턴 경험을 입력해주세요.',
     addLabel: '인턴 경험 추가',
+    hasVerification: false,
     fields: [
       { key: 'company', label: '회사명', type: 'text', required: true, placeholder: '예) ABC 마케팅' },
       { key: 'period', label: '근무 기간', type: 'text', placeholder: '예) 2024.06 - 2024.08' },
@@ -108,10 +128,12 @@ const CATEGORIES: CategoryConfig[] = [
     title: '수상 입력',
     description: '수상 경험을 입력해주세요.',
     addLabel: '수상 추가',
+    hasVerification: false,
     fields: [
       { key: 'name', label: '수상명', type: 'text', required: true, placeholder: '예) 마케팅 아이디어 공모전 장려상' },
       { key: 'host', label: '주최기관', type: 'text', placeholder: '예) 한국마케팅협회' },
       { key: 'date', label: '수상일', type: 'date' },
+      { key: 'detail', label: '수상 내용', type: 'textarea', placeholder: '수상 계기와 성과를 간단히 적어주세요.' },
     ],
   },
 ]
@@ -124,6 +146,10 @@ const GUIDE_ITEMS = [
 ]
 
 type Entry = Record<string, string>
+type EvidenceStatus = 'none' | 'pending' | 'verified'
+
+const getEvidenceStatus = (entry: Entry): EvidenceStatus =>
+  entry._status === 'verified' ? 'verified' : entry._status === 'pending' ? 'pending' : 'none'
 
 function FieldInput({
   field,
@@ -199,7 +225,7 @@ export default function SpecRegisterPage() {
   const [entries, setEntries] = useState<Record<string, Entry[]>>(() =>
     Object.fromEntries(CATEGORIES.map((c) => [c.key, []])),
   )
-  const [verified, setVerified] = useState<Record<string, boolean>>({})
+  const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
 
   const isEntryComplete = (category: CategoryConfig, entry: Entry) =>
     category.fields
@@ -287,36 +313,33 @@ export default function SpecRegisterPage() {
           {CATEGORIES.map((category) => {
             const rowFields = category.fields.filter((f) => f.type !== 'textarea')
             const textareaFields = category.fields.filter((f) => f.type === 'textarea')
-            const isVerified = verified[category.key] ?? false
+            const requiresVerification = category.hasVerification !== false
 
             return (
               <div
                 key={category.key}
-                className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02]"
+                className={`rounded-2xl p-5 shadow-sm shadow-black/[0.02] ${
+                  requiresVerification
+                    ? 'border border-blue-200 bg-blue-50/40'
+                    : 'border border-gray-100 bg-white'
+                }`}
               >
                 <div className="mb-1 flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                        requiresVerification ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
                       <category.icon className="h-4 w-4" />
                     </span>
                     <h3 className="text-[14.5px] font-bold text-ink-900">{category.title}</h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setVerified((prev) => ({ ...prev, [category.key]: !isVerified }))}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-                      isVerified
-                        ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
-                        : 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100'
-                    }`}
-                  >
-                    {isVerified ? (
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                    ) : (
-                      <ShieldCheck className="h-3.5 w-3.5" />
+                    {requiresVerification && (
+                      <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10.5px] font-semibold text-blue-600">
+                        인증 필수
+                      </span>
                     )}
-                    {isVerified ? '인증됨' : '인증하기'}
-                  </button>
+                  </div>
                 </div>
                 <p className="text-[12.5px] text-gray-400">{category.description}</p>
 
@@ -327,50 +350,97 @@ export default function SpecRegisterPage() {
                         key={index}
                         className={index > 0 ? 'border-t border-gray-100 pt-4' : ''}
                       >
-                        {entries[category.key].length > 1 && (
-                          <div className="mb-2 flex items-center justify-between">
+                        {(entries[category.key].length > 1 || category.fileUpload) && (
+                          <div className="mb-2 flex items-center justify-between gap-2">
                             <span className="flex items-center gap-2 text-[12px] font-semibold text-gray-400">
-                              {category.title.replace(' 입력', '')} {index + 1}
-                              {!isEntryComplete(category, entry) && (
-                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10.5px] font-semibold text-amber-600">
-                                  필수 항목을 입력해주세요
-                                </span>
+                              {entries[category.key].length > 1 && (
+                                <>
+                                  {category.title.replace(' 입력', '')} {index + 1}
+                                  {!isEntryComplete(category, entry) && (
+                                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10.5px] font-semibold text-amber-600">
+                                      필수 항목을 입력해주세요
+                                    </span>
+                                  )}
+                                </>
                               )}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => removeEntry(category.key, index)}
-                              aria-label="삭제"
-                              className="text-gray-300 hover:text-red-500"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </button>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              {category.fileUpload && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => setUploadTarget({ categoryKey: category.key, index })}
+                                    className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11.5px] font-semibold text-gray-500 transition-colors hover:bg-gray-50"
+                                  >
+                                    <Paperclip className="h-3.5 w-3.5" />
+                                    파일선택
+                                  </button>
+                                  {(() => {
+                                    const status = getEvidenceStatus(entry)
+                                    return (
+                                      <span
+                                        className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11.5px] font-semibold ${
+                                          status === 'verified'
+                                            ? 'border-emerald-200 bg-white text-emerald-600'
+                                            : status === 'pending'
+                                              ? 'border-blue-200 bg-white text-blue-600'
+                                              : 'border-amber-200 bg-white text-amber-600'
+                                        }`}
+                                      >
+                                        {status === 'verified' && <CheckCircle2 className="h-3.5 w-3.5" />}
+                                        {status === 'pending' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                        {status === 'none' && <ShieldCheck className="h-3.5 w-3.5" />}
+                                        {status === 'verified' ? '인증됨' : status === 'pending' ? '확인중' : '인증 필요'}
+                                      </span>
+                                    )
+                                  })()}
+                                </>
+                              )}
+                              {entries[category.key].length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeEntry(category.key, index)}
+                                  aria-label="삭제"
+                                  className="text-gray-300 hover:text-red-500"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        {entry._fileName && (
+                          <p className="mb-2 flex items-center gap-1.5 text-[11.5px] font-medium text-blue-600">
+                            <Paperclip className="h-3.5 w-3.5" />
+                            {entry._fileName}
+                          </p>
+                        )}
+
+                        {rowFields.length > 0 && (
+                          <div
+                            className="grid gap-3"
+                            style={{
+                              gridTemplateColumns: `repeat(${rowFields.length}, minmax(0, 1fr))`,
+                            }}
+                          >
+                            {rowFields.map((field) => (
+                              <div key={field.key}>
+                                <label className="mb-1 flex items-center gap-1 text-[12px] font-medium text-gray-500">
+                                  {field.label}
+                                  {field.required && <span className="text-red-500">*</span>}
+                                </label>
+                                <FieldInput
+                                  field={field}
+                                  value={entry[field.key] ?? ''}
+                                  onChange={(value) => updateEntry(category.key, index, field.key, value)}
+                                />
+                              </div>
+                            ))}
                           </div>
                         )}
 
-                        <div
-                          className="grid gap-3"
-                          style={{
-                            gridTemplateColumns: `repeat(${rowFields.length}, minmax(0, 1fr))`,
-                          }}
-                        >
-                          {rowFields.map((field) => (
-                            <div key={field.key}>
-                              <label className="mb-1 flex items-center gap-1 text-[12px] font-medium text-gray-500">
-                                {field.label}
-                                {field.required && <span className="text-red-500">*</span>}
-                              </label>
-                              <FieldInput
-                                field={field}
-                                value={entry[field.key] ?? ''}
-                                onChange={(value) => updateEntry(category.key, index, field.key, value)}
-                              />
-                            </div>
-                          ))}
-                        </div>
-
                         {textareaFields.map((field) => (
-                          <div key={field.key} className="mt-3">
+                          <div key={field.key} className={rowFields.length > 0 ? 'mt-3' : ''}>
                             <label className="mb-1 flex items-center gap-1 text-[12px] font-medium text-gray-500">
                               {field.label}
                               {field.required && <span className="text-red-500">*</span>}
@@ -461,6 +531,28 @@ export default function SpecRegisterPage() {
           </div>
         </div>
       </div>
+
+      {uploadTarget && (() => {
+        const target = uploadTarget
+        const activeCategory = CATEGORIES.find((c) => c.key === target.categoryKey)
+        if (!activeCategory?.fileUpload) return null
+        return (
+          <EvidenceUploadModal
+            open
+            onClose={() => setUploadTarget(null)}
+            title={activeCategory.title.replace(' 입력', '')}
+            exampleImage={activeCategory.fileUpload.exampleImage}
+            description={activeCategory.fileUpload.description}
+            onConfirm={(fileName) => {
+              updateEntry(target.categoryKey, target.index, '_fileName', fileName)
+              updateEntry(target.categoryKey, target.index, '_status', 'pending')
+              setTimeout(() => {
+                updateEntry(target.categoryKey, target.index, '_status', 'verified')
+              }, 2500)
+            }}
+          />
+        )
+      })()}
     </MyPageLayout>
   )
 }

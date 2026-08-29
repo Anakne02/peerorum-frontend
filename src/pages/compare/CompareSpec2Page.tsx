@@ -17,6 +17,7 @@ import RankBadge from '../../components/compare/RankBadge'
 import RankPagination from '../../components/compare/RankPagination'
 import { RANKED_STUDENTS } from '../../data/mockRankings'
 import { JOB_CATEGORIES } from '../../data/jobCategories'
+import { COLLEGES } from '../../data/departments'
 
 const HERO_STEPS = [
   { icon: Filter, label: '조건 선택' },
@@ -171,10 +172,16 @@ export default function CompareSpec2Page() {
               </label>
               <div className="relative">
                 <select
-                  defaultValue="경영학과"
+                  defaultValue="경영경제대학 경영학부 경영학전공"
                   className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] text-ink-900 outline-none focus:border-blue-500"
                 >
-                  <option>경영학과</option>
+                  {COLLEGES.map((college) => (
+                    <optgroup key={college.college} label={college.college}>
+                      {college.departments.map((department) => (
+                        <option key={department}>{department}</option>
+                      ))}
+                    </optgroup>
+                  ))}
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
               </div>

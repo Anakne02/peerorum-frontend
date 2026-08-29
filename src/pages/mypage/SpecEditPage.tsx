@@ -6,6 +6,8 @@ import {
   CheckCircle2,
   GraduationCap,
   Globe2,
+  Loader2,
+  Paperclip,
   Plus,
   ShieldCheck,
   Trash2,
@@ -13,6 +15,8 @@ import {
   Users,
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
+import EvidenceUploadModal from '../../components/mypage/EvidenceUploadModal'
+import gpaExampleImage from '../../assets/images/gpa-example.png'
 
 type FieldType = 'text' | 'number' | 'date' | 'textarea' | 'select' | 'buttongroup'
 
@@ -30,6 +34,11 @@ interface CategoryConfig {
   title: string
   addLabel: string
   fields: FieldConfig[]
+  hasVerification?: boolean
+  fileUpload?: {
+    exampleImage?: string
+    description: string
+  }
 }
 
 type Entry = Record<string, string>
@@ -43,12 +52,15 @@ const CATEGORIES: CategoryConfig[] = [
     title: '학점 정보',
     addLabel: '학점 추가',
     fields: [
-      { key: 'scoreType', label: '점수 방식', type: 'select', options: ['4.5 만점', '4.3 만점', '100점 만점'] },
-      { key: 'gpa', label: '학점', type: 'number' },
-      { key: 'percentile', label: '백분율 (환산)', type: 'number' },
-      { key: 'majorAverage', label: '전공 평균 (선택)', type: 'number' },
+      { key: 'gpaAverage', label: '평점평균', type: 'number' },
+      { key: 'convertedScore', label: '환산점수', type: 'number' },
+      { key: 'majorGpaAverage', label: '전공평점평균 (선택)', type: 'number' },
       { key: 'grade', label: '이수 학년', type: 'select', options: GRADE_OPTIONS },
     ],
+    fileUpload: {
+      exampleImage: gpaExampleImage,
+      description: '학교 포털의 \'누적성적 조회\' 화면을 캡처해 첨부해주세요.',
+    },
   },
   {
     key: 'language',
@@ -60,6 +72,9 @@ const CATEGORIES: CategoryConfig[] = [
       { key: 'score', label: '점수 / 등급', type: 'text' },
       { key: 'date', label: '취득일', type: 'date' },
     ],
+    fileUpload: {
+      description: '성적표(점수 확인 페이지) 캡처본을 첨부해주세요.',
+    },
   },
   {
     key: 'certificate',
@@ -71,12 +86,16 @@ const CATEGORIES: CategoryConfig[] = [
       { key: 'issuer', label: '발급기관', type: 'text' },
       { key: 'date', label: '취득일', type: 'date' },
     ],
+    fileUpload: {
+      description: '자격증 사본 또는 발급 확인서를 첨부해주세요.',
+    },
   },
   {
     key: 'activity',
     icon: Briefcase,
     title: '대외활동',
     addLabel: '대외활동 추가',
+    hasVerification: false,
     fields: [
       { key: 'name', label: '활동명', type: 'text' },
       { key: 'period', label: '활동 기간', type: 'text' },
@@ -88,6 +107,7 @@ const CATEGORIES: CategoryConfig[] = [
     icon: Users,
     title: '인턴',
     addLabel: '인턴 경험 추가',
+    hasVerification: false,
     fields: [
       { key: 'company', label: '회사명', type: 'text' },
       { key: 'period', label: '근무 기간', type: 'text' },
@@ -99,10 +119,12 @@ const CATEGORIES: CategoryConfig[] = [
     icon: Trophy,
     title: '수상',
     addLabel: '수상 추가',
+    hasVerification: false,
     fields: [
       { key: 'name', label: '수상명', type: 'text' },
       { key: 'host', label: '주최기관', type: 'text' },
       { key: 'date', label: '수상일', type: 'date' },
+      { key: 'detail', label: '수상 내용', type: 'textarea' },
     ],
   },
 ]
@@ -110,22 +132,23 @@ const CATEGORIES: CategoryConfig[] = [
 const INITIAL_ENTRIES: Record<string, Entry[]> = {
   gpa: [
     {
-      scoreType: '4.5 만점',
-      gpa: '4.29',
-      percentile: '95.3',
-      majorAverage: '3.85',
+      gpaAverage: '4.29',
+      convertedScore: '95.3',
+      majorGpaAverage: '3.85',
       grade: '4학년',
+      _fileName: '누적성적_조회.png',
+      _status: 'verified',
     },
   ],
   language: [
-    { test: 'TOEIC', score: '780', date: '2024-06-01' },
-    { test: 'OPIc', score: 'IH', date: '2024-03-15' },
+    { test: 'TOEIC', score: '780', date: '2024-06-01', _fileName: '토익_성적표.pdf', _status: 'verified' },
+    { test: 'OPIc', score: 'IH', date: '2024-03-15', _fileName: 'OPIc_성적표.pdf', _status: 'verified' },
   ],
   certificate: [
-    { name: 'ADsP', issuer: '한국데이터산업진흥원', date: '2024-05-10' },
-    { name: '컴퓨터활용능력 2급', issuer: '대한상공회의소', date: '2023-09-15' },
-    { name: 'SQLD', issuer: '한국데이터산업진흥원', date: '2024-01-20' },
-    { name: '무역영어 1급', issuer: '대한상공회의소', date: '2023-12-05' },
+    { name: 'ADsP', issuer: '한국데이터산업진흥원', date: '2024-05-10', _fileName: 'ADsP_자격증.pdf', _status: 'verified' },
+    { name: '컴퓨터활용능력 2급', issuer: '대한상공회의소', date: '2023-09-15', _fileName: '컴활2급_자격증.pdf', _status: 'verified' },
+    { name: 'SQLD', issuer: '한국데이터산업진흥원', date: '2024-01-20', _fileName: 'SQLD_자격증.pdf', _status: 'verified' },
+    { name: '무역영어 1급', issuer: '대한상공회의소', date: '2023-12-05', _fileName: '무역영어1급_자격증.pdf', _status: 'verified' },
   ],
   activity: [
     { name: '교내 마케팅 서포터즈 3기', period: '2024.03 - 2024.11', detail: '' },
@@ -139,8 +162,20 @@ const INITIAL_ENTRIES: Record<string, Entry[]> = {
       detail: 'SNS 콘텐츠 기획 및 운영, 시장 조사 및 경쟁사 분석',
     },
   ],
-  award: [{ name: '마케팅 아이디어 공모전 장려상', host: '한국마케팅협회', date: '2024-06-01' }],
+  award: [
+    {
+      name: '마케팅 아이디어 공모전 장려상',
+      host: '한국마케팅협회',
+      date: '2024-06-01',
+      detail: '팀 프로젝트로 참가해 소비자 리서치 기반 캠페인 기획안을 제안, 장려상 수상',
+    },
+  ],
 }
+
+type EvidenceStatus = 'none' | 'pending' | 'verified'
+
+const getEvidenceStatus = (entry: Entry): EvidenceStatus =>
+  entry._status === 'verified' ? 'verified' : entry._status === 'pending' ? 'pending' : 'none'
 
 function FieldInput({
   field,
@@ -212,11 +247,7 @@ function FieldInput({
 export default function SpecEditPage() {
   const navigate = useNavigate()
   const [entries, setEntries] = useState<Record<string, Entry[]>>(INITIAL_ENTRIES)
-  const [verified, setVerified] = useState<Record<string, boolean>>({
-    gpa: true,
-    language: true,
-    certificate: true,
-  })
+  const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
 
   const addEntry = (categoryKey: string) => {
     setEntries((prev) => ({ ...prev, [categoryKey]: [...prev[categoryKey], {}] }))
@@ -269,36 +300,33 @@ export default function SpecEditPage() {
         {CATEGORIES.map((category) => {
           const rowFields = category.fields.filter((f) => f.type !== 'textarea')
           const textareaFields = category.fields.filter((f) => f.type === 'textarea')
-          const isVerified = verified[category.key] ?? false
+          const requiresVerification = category.hasVerification !== false
 
           return (
             <div
               key={category.key}
-              className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm shadow-black/[0.02]"
+              className={`rounded-2xl p-5 shadow-sm shadow-black/[0.02] ${
+                requiresVerification
+                  ? 'border border-blue-200 bg-blue-50/40'
+                  : 'border border-gray-100 bg-white'
+              }`}
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <span
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                      requiresVerification ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
                     <category.icon className="h-4 w-4" />
                   </span>
                   <h3 className="text-[14.5px] font-bold text-ink-900">{category.title}</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setVerified((prev) => ({ ...prev, [category.key]: !isVerified }))}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-                    isVerified
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
-                      : 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100'
-                  }`}
-                >
-                  {isVerified ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : (
-                    <ShieldCheck className="h-3.5 w-3.5" />
+                  {requiresVerification && (
+                    <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10.5px] font-semibold text-blue-600">
+                      인증 필수
+                    </span>
                   )}
-                  {isVerified ? '인증됨' : '인증하기'}
-                </button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -307,40 +335,81 @@ export default function SpecEditPage() {
                     key={index}
                     className={index > 0 ? 'border-t border-gray-100 pt-4' : ''}
                   >
-                    <div className="mb-2 flex items-center justify-between">
+                    <div className="mb-2 flex items-center justify-between gap-2">
                       <span className="text-[12px] font-semibold text-gray-400">
                         {category.title} {index + 1}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => removeEntry(category.key, index)}
-                        aria-label="삭제"
-                        className="text-gray-300 hover:text-red-500"
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        {category.fileUpload && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setUploadTarget({ categoryKey: category.key, index })}
+                              className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11.5px] font-semibold text-gray-500 transition-colors hover:bg-gray-50"
+                            >
+                              <Paperclip className="h-3.5 w-3.5" />
+                              파일선택
+                            </button>
+                            {(() => {
+                              const status = getEvidenceStatus(entry)
+                              return (
+                                <span
+                                  className={`flex items-center gap-1 rounded-lg border px-2.5 py-1 text-[11.5px] font-semibold ${
+                                    status === 'verified'
+                                      ? 'border-emerald-200 bg-white text-emerald-600'
+                                      : status === 'pending'
+                                        ? 'border-blue-200 bg-white text-blue-600'
+                                        : 'border-amber-200 bg-white text-amber-600'
+                                  }`}
+                                >
+                                  {status === 'verified' && <CheckCircle2 className="h-3.5 w-3.5" />}
+                                  {status === 'pending' && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                                  {status === 'none' && <ShieldCheck className="h-3.5 w-3.5" />}
+                                  {status === 'verified' ? '인증됨' : status === 'pending' ? '확인중' : '인증 필요'}
+                                </span>
+                              )
+                            })()}
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeEntry(category.key, index)}
+                          aria-label="삭제"
+                          className="text-gray-300 hover:text-red-500"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                    {entry._fileName && (
+                      <p className="mb-2 flex items-center gap-1.5 text-[11.5px] font-medium text-blue-600">
+                        <Paperclip className="h-3.5 w-3.5" />
+                        {entry._fileName}
+                      </p>
+                    )}
+                    {rowFields.length > 0 && (
+                      <div
+                        className="grid gap-3"
+                        style={{
+                          gridTemplateColumns: `repeat(${rowFields.length}, minmax(0, 1fr))`,
+                        }}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                    <div
-                      className="grid gap-3"
-                      style={{
-                        gridTemplateColumns: `repeat(${rowFields.length}, minmax(0, 1fr))`,
-                      }}
-                    >
-                      {rowFields.map((field) => (
-                        <div key={field.key}>
-                          <label className="mb-1 block text-[12px] font-medium text-gray-500">
-                            {field.label}
-                          </label>
-                          <FieldInput
-                            field={field}
-                            value={entry[field.key] ?? ''}
-                            onChange={(value) => updateEntry(category.key, index, field.key, value)}
-                          />
-                        </div>
-                      ))}
-                    </div>
+                        {rowFields.map((field) => (
+                          <div key={field.key}>
+                            <label className="mb-1 block text-[12px] font-medium text-gray-500">
+                              {field.label}
+                            </label>
+                            <FieldInput
+                              field={field}
+                              value={entry[field.key] ?? ''}
+                              onChange={(value) => updateEntry(category.key, index, field.key, value)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {textareaFields.map((field) => (
-                      <div key={field.key} className="mt-3">
+                      <div key={field.key} className={rowFields.length > 0 ? 'mt-3' : ''}>
                         <label className="mb-1 block text-[12px] font-medium text-gray-500">
                           {field.label}
                         </label>
@@ -391,6 +460,28 @@ export default function SpecEditPage() {
           저장하기
         </button>
       </div>
+
+      {uploadTarget && (() => {
+        const target = uploadTarget
+        const activeCategory = CATEGORIES.find((c) => c.key === target.categoryKey)
+        if (!activeCategory?.fileUpload) return null
+        return (
+          <EvidenceUploadModal
+            open
+            onClose={() => setUploadTarget(null)}
+            title={activeCategory.title}
+            exampleImage={activeCategory.fileUpload.exampleImage}
+            description={activeCategory.fileUpload.description}
+            onConfirm={(fileName) => {
+              updateEntry(target.categoryKey, target.index, '_fileName', fileName)
+              updateEntry(target.categoryKey, target.index, '_status', 'pending')
+              setTimeout(() => {
+                updateEntry(target.categoryKey, target.index, '_status', 'verified')
+              }, 2500)
+            }}
+          />
+        )
+      })()}
     </MyPageLayout>
   )
 }

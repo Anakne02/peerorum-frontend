@@ -16,6 +16,7 @@ import PenguinMascot from '../../components/ui/PenguinMascot'
 import AuthLayout from '../../layouts/AuthLayout'
 import { LEGAL_TERMS } from '../../data/legalTerms'
 import { JOB_CATEGORIES } from '../../data/jobCategories'
+import { COLLEGES } from '../../data/departments'
 import { useAuth } from '../../context/AuthContext'
 
 type Step = 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
@@ -385,10 +386,13 @@ export default function SignupPage() {
                     <option value="" disabled>
                       학과를 선택해주세요
                     </option>
-                    <option>경영학과</option>
-                    <option>경제학과</option>
-                    <option>컴퓨터공학과</option>
-                    <option>디자인학과</option>
+                    {COLLEGES.map((college) => (
+                      <optgroup key={college.college} label={college.college}>
+                        {college.departments.map((department) => (
+                          <option key={department}>{department}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 </div>
