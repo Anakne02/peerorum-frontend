@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import { useAuth } from '../../context/AuthContext'
+import { useSpec, type SpecCategoryKey } from '../../context/SpecContext'
 import EvidenceUploadModal from '../../components/mypage/EvidenceUploadModal'
 import gpaExampleImage from '../../assets/images/gpa-example.png'
 
@@ -30,6 +31,7 @@ interface FieldConfig {
   placeholder?: string
   options?: string[]
   required?: boolean
+  max?: number
 }
 
 interface CategoryConfig {
@@ -56,9 +58,9 @@ const CATEGORIES: CategoryConfig[] = [
     description: '누적성적 조회 화면 기준으로 입력해주세요.',
     addLabel: '학점 추가',
     fields: [
-      { key: 'gpaAverage', label: '평점평균', type: 'number', required: true, placeholder: '4.29' },
+      { key: 'gpaAverage', label: '평점평균', type: 'number', required: true, placeholder: '4.29', max: 4.5 },
       { key: 'convertedScore', label: '환산점수', type: 'number', placeholder: '95.3' },
-      { key: 'majorGpaAverage', label: '전공평점평균 (선택)', type: 'number', placeholder: '3.85' },
+      { key: 'majorGpaAverage', label: '전공평점평균', type: 'number', placeholder: '3.85', max: 4.5 },
       { key: 'grade', label: '이수 학년', type: 'select', options: GRADE_OPTIONS, required: true },
     ],
     fileUpload: {
@@ -212,7 +214,18 @@ function FieldInput({
       type={field.type}
       placeholder={field.placeholder}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      max={field.max}
+      onChange={(e) => {
+        const raw = e.target.value
+        if (field.max !== undefined && raw !== '') {
+          const parsed = Number.parseFloat(raw)
+          if (!Number.isNaN(parsed) && parsed > field.max) {
+            onChange(String(field.max))
+            return
+          }
+        }
+        onChange(raw)
+      }}
       className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] outline-none placeholder:text-gray-400 focus:border-blue-500"
     />
   )
@@ -221,6 +234,7 @@ function FieldInput({
 export default function SpecRegisterPage() {
   const navigate = useNavigate()
   const { setHasSpec } = useAuth()
+  const { setCategoryEntries } = useSpec()
 
   const [entries, setEntries] = useState<Record<string, Entry[]>>(() =>
     Object.fromEntries(CATEGORIES.map((c) => [c.key, []])),
@@ -262,6 +276,12 @@ export default function SpecRegisterPage() {
 
   const handleSubmit = () => {
     if (totalCompleteEntries === 0) return
+    CATEGORIES.forEach((category) => {
+      const completeEntries = entries[category.key].filter((entry) =>
+        isEntryComplete(category, entry),
+      )
+      setCategoryEntries(category.key as SpecCategoryKey, completeEntries)
+    })
     setHasSpec(true)
     navigate('/mypage/specs')
   }

@@ -3,69 +3,86 @@ import { useNavigate } from 'react-router-dom'
 import {
   Award,
   ArrowUpDown,
-  Briefcase,
   CheckCircle2,
   Clock,
   FileText,
   GraduationCap,
   Lock,
-  MinusCircle,
-  Users,
+  Globe2,
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import PenguinHero from '../../components/ui/PenguinHero'
 import RankPagination from '../../components/compare/RankPagination'
 import { useAuth } from '../../context/AuthContext'
+import { useSpec } from '../../context/SpecContext'
 
 const PAGE_SIZE = 5
 
-const SUMMARY = [
-  { label: '총 등록 항목 수', value: 12, icon: FileText, tone: 'bg-blue-50 text-blue-600' },
-  { label: '인증 완료', value: 9, icon: CheckCircle2, tone: 'bg-emerald-50 text-emerald-600' },
-  { label: '인증 대기', value: 2, icon: Clock, tone: 'bg-amber-50 text-amber-600' },
-  { label: '인증 반려', value: 1, icon: MinusCircle, tone: 'bg-gray-100 text-gray-500' },
-]
-
-const TABS = ['전체', '인증 완료', '인증 대기', '인증 반려']
+const TABS = ['전체', '인증 완료', '인증 대기']
 
 const STATUS_STYLE: Record<string, string> = {
   완료: 'bg-emerald-50 text-emerald-600',
   대기: 'bg-amber-50 text-amber-600',
-  반려: 'bg-red-50 text-red-600',
 }
-
-const ITEMS = [
-  { icon: GraduationCap, item: '학점', content: '4.29 / 4.5', status: '완료', date: '2024.08.15' },
-  { icon: Users, item: '어학 (TOEIC)', content: 'TOEIC 780', status: '완료', date: '2024.08.10' },
-  { icon: Award, item: '자격증 (ADsP)', content: 'ADsP', status: '완료', date: '2024.08.12' },
-  {
-    icon: Briefcase,
-    item: '대외활동',
-    content: '교내 마케팅 서포터즈 3기',
-    status: '대기',
-    date: '2024.08.18',
-  },
-  {
-    icon: Users,
-    item: '인턴 경험',
-    content: 'ABC 마케팅 인턴 (3개월)',
-    status: '대기',
-    date: '2024.08.18',
-  },
-  {
-    icon: Award,
-    item: '수상',
-    content: '마케팅 아이디어 공모전 장려상',
-    status: '반려',
-    date: '2024.08.14',
-  },
-]
 
 export default function VerificationStatusPage() {
   const [activeTab, setActiveTab] = useState('전체')
   const [page, setPage] = useState(1)
   const { user } = useAuth()
+  const { entries } = useSpec()
   const navigate = useNavigate()
+
+  const items = [
+    ...(entries.gpa[0]
+      ? [
+          {
+            icon: GraduationCap,
+            item: '학점',
+            content: `${entries.gpa[0].gpaAverage ?? '-'} / 4.5`,
+            status: entries.gpa[0]._status === 'verified' ? '완료' : '대기',
+            date: entries.gpa[0].date ?? '-',
+          },
+        ]
+      : []),
+    ...entries.language.map((entry) => ({
+      icon: Globe2,
+      item: `어학 (${entry.test || '어학'})`,
+      content: `${entry.test ?? ''} ${entry.score ?? ''}`.trim(),
+      status: entry._status === 'verified' ? '완료' : '대기',
+      date: entry.date ?? '-',
+    })),
+    ...entries.certificate.map((entry) => ({
+      icon: Award,
+      item: `자격증 (${entry.name || '자격증'})`,
+      content: entry.name ?? '-',
+      status: entry._status === 'verified' ? '완료' : '대기',
+      date: entry.date ?? '-',
+    })),
+  ]
+
+  const totalRegisteredCount =
+    entries.gpa.length +
+    entries.language.length +
+    entries.certificate.length +
+    entries.activity.length +
+    entries.intern.length +
+    entries.award.length
+
+  const SUMMARY = [
+    { label: '총 등록 항목 수', value: totalRegisteredCount, icon: FileText, tone: 'bg-blue-50 text-blue-600' },
+    {
+      label: '인증 완료',
+      value: items.filter((item) => item.status === '완료').length,
+      icon: CheckCircle2,
+      tone: 'bg-emerald-50 text-emerald-600',
+    },
+    {
+      label: '인증 대기',
+      value: items.filter((item) => item.status === '대기').length,
+      icon: Clock,
+      tone: 'bg-amber-50 text-amber-600',
+    },
+  ]
 
   const selectTab = (tab: string) => {
     setActiveTab(tab)
@@ -73,7 +90,7 @@ export default function VerificationStatusPage() {
   }
 
   const filtered =
-    activeTab === '전체' ? ITEMS : ITEMS.filter((item) => `인증 ${item.status}` === activeTab)
+    activeTab === '전체' ? items : items.filter((item) => `인증 ${item.status}` === activeTab)
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -123,7 +140,7 @@ export default function VerificationStatusPage() {
       </div>
 
       <h2 className="mb-4 mt-8 text-[16px] font-bold text-ink-900">인증 현황 요약</h2>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         {SUMMARY.map((stat) => (
           <div
             key={stat.label}
@@ -171,8 +188,15 @@ export default function VerificationStatusPage() {
             </tr>
           </thead>
           <tbody>
-            {pageItems.map((row) => (
-              <tr key={row.item} className="border-b border-gray-50 last:border-none">
+            {pageItems.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-5 py-10 text-center text-[13px] text-gray-400">
+                  인증 대상 항목이 없어요. 학점, 어학, 자격증을 등록하면 여기에 표시돼요.
+                </td>
+              </tr>
+            )}
+            {pageItems.map((row, index) => (
+              <tr key={`${row.item}-${index}`} className="border-b border-gray-50 last:border-none">
                 <td className="px-5 py-4">
                   <span className="flex items-center gap-2 text-[13.5px] font-medium text-ink-900">
                     <row.icon className="h-4 w-4 text-gray-400" />
@@ -194,7 +218,7 @@ export default function VerificationStatusPage() {
                     onClick={() => navigate('/mypage/specs/edit')}
                     className="rounded-lg border border-gray-200 px-3 py-1.5 text-[12.5px] font-medium text-gray-600 hover:bg-gray-50"
                   >
-                    {row.status === '반려' ? '다시 제출' : '상세보기'}
+                    상세보기
                   </button>
                 </td>
               </tr>
@@ -207,8 +231,8 @@ export default function VerificationStatusPage() {
       <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-blue-50 p-5">
         <CheckCircle2 className="mt-0.5 h-4.5 w-4.5 shrink-0 text-blue-600" />
         <p className="text-[13.5px] text-blue-700">
-          <span className="font-semibold">인증이 반려되었나요?</span> 요청하신 인증이 반려된
-          경우, 사유를 확인하고 다시 제출해주세요.
+          <span className="font-semibold">인증 대기 중인 항목이 있나요?</span> 증빙자료 확인이
+          끝나는 대로 인증 완료 상태로 자동 반영돼요.
         </p>
       </div>
     </MyPageLayout>

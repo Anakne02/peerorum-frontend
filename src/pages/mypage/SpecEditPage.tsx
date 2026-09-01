@@ -15,6 +15,8 @@ import {
   Users,
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
+import { useAuth } from '../../context/AuthContext'
+import { useSpec, type SpecCategoryKey } from '../../context/SpecContext'
 import EvidenceUploadModal from '../../components/mypage/EvidenceUploadModal'
 import gpaExampleImage from '../../assets/images/gpa-example.png'
 
@@ -26,6 +28,7 @@ interface FieldConfig {
   type: FieldType
   placeholder?: string
   options?: string[]
+  max?: number
 }
 
 interface CategoryConfig {
@@ -52,9 +55,9 @@ const CATEGORIES: CategoryConfig[] = [
     title: '학점 정보',
     addLabel: '학점 추가',
     fields: [
-      { key: 'gpaAverage', label: '평점평균', type: 'number' },
+      { key: 'gpaAverage', label: '평점평균', type: 'number', max: 4.5 },
       { key: 'convertedScore', label: '환산점수', type: 'number' },
-      { key: 'majorGpaAverage', label: '전공평점평균 (선택)', type: 'number' },
+      { key: 'majorGpaAverage', label: '전공평점평균', type: 'number', max: 4.5 },
       { key: 'grade', label: '이수 학년', type: 'select', options: GRADE_OPTIONS },
     ],
     fileUpload: {
@@ -129,49 +132,6 @@ const CATEGORIES: CategoryConfig[] = [
   },
 ]
 
-const INITIAL_ENTRIES: Record<string, Entry[]> = {
-  gpa: [
-    {
-      gpaAverage: '4.29',
-      convertedScore: '95.3',
-      majorGpaAverage: '3.85',
-      grade: '4학년',
-      _fileName: '누적성적_조회.png',
-      _status: 'verified',
-    },
-  ],
-  language: [
-    { test: 'TOEIC', score: '780', date: '2024-06-01', _fileName: '토익_성적표.pdf', _status: 'verified' },
-    { test: 'OPIc', score: 'IH', date: '2024-03-15', _fileName: 'OPIc_성적표.pdf', _status: 'verified' },
-  ],
-  certificate: [
-    { name: 'ADsP', issuer: '한국데이터산업진흥원', date: '2024-05-10', _fileName: 'ADsP_자격증.pdf', _status: 'verified' },
-    { name: '컴퓨터활용능력 2급', issuer: '대한상공회의소', date: '2023-09-15', _fileName: '컴활2급_자격증.pdf', _status: 'verified' },
-    { name: 'SQLD', issuer: '한국데이터산업진흥원', date: '2024-01-20', _fileName: 'SQLD_자격증.pdf', _status: 'verified' },
-    { name: '무역영어 1급', issuer: '대한상공회의소', date: '2023-12-05', _fileName: '무역영어1급_자격증.pdf', _status: 'verified' },
-  ],
-  activity: [
-    { name: '교내 마케팅 서포터즈 3기', period: '2024.03 - 2024.11', detail: '' },
-    { name: '한국경제 대학생 기자단 21기', period: '2023.09 - 2024.02', detail: '' },
-    { name: '대학 연합 마케팅 컨퍼런스 운영진', period: '2023.05 - 2023.11', detail: '' },
-  ],
-  intern: [
-    {
-      company: 'ABC 마케팅',
-      period: '2024.06 - 2024.08',
-      detail: 'SNS 콘텐츠 기획 및 운영, 시장 조사 및 경쟁사 분석',
-    },
-  ],
-  award: [
-    {
-      name: '마케팅 아이디어 공모전 장려상',
-      host: '한국마케팅협회',
-      date: '2024-06-01',
-      detail: '팀 프로젝트로 참가해 소비자 리서치 기반 캠페인 기획안을 제안, 장려상 수상',
-    },
-  ],
-}
-
 type EvidenceStatus = 'none' | 'pending' | 'verified'
 
 const getEvidenceStatus = (entry: Entry): EvidenceStatus =>
@@ -238,7 +198,18 @@ function FieldInput({
       type={field.type}
       placeholder={field.placeholder}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      max={field.max}
+      onChange={(e) => {
+        const raw = e.target.value
+        if (field.max !== undefined && raw !== '') {
+          const parsed = Number.parseFloat(raw)
+          if (!Number.isNaN(parsed) && parsed > field.max) {
+            onChange(String(field.max))
+            return
+          }
+        }
+        onChange(raw)
+      }}
       className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] outline-none placeholder:text-gray-400 focus:border-blue-500"
     />
   )
@@ -246,7 +217,9 @@ function FieldInput({
 
 export default function SpecEditPage() {
   const navigate = useNavigate()
-  const [entries, setEntries] = useState<Record<string, Entry[]>>(INITIAL_ENTRIES)
+  const { setHasSpec } = useAuth()
+  const { entries: savedEntries, setCategoryEntries } = useSpec()
+  const [entries, setEntries] = useState<Record<string, Entry[]>>(savedEntries)
   const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
 
   const addEntry = (categoryKey: string) => {
@@ -263,10 +236,38 @@ export default function SpecEditPage() {
   const updateEntry = (categoryKey: string, index: number, fieldKey: string, value: string) => {
     setEntries((prev) => ({
       ...prev,
-      [categoryKey]: prev[categoryKey].map((entry, i) =>
-        i === index ? { ...entry, [fieldKey]: value } : entry,
-      ),
+      [categoryKey]: prev[categoryKey].map((entry, i) => {
+        if (i !== index) return entry
+        const updated = { ...entry, [fieldKey]: value }
+        if (!fieldKey.startsWith('_') && entry._status && entry._status !== 'none') {
+          delete updated._status
+        }
+        return updated
+      }),
     }))
+  }
+
+  const hasUnverifiedRequiredEntry = CATEGORIES.some((category) => {
+    if (category.hasVerification === false) return false
+    return entries[category.key].some((entry) => {
+      const hasValue = Object.entries(entry).some(
+        ([key, value]) => !key.startsWith('_') && value.trim().length > 0,
+      )
+      return hasValue && entry._status !== 'verified'
+    })
+  })
+
+  const handleSave = () => {
+    let hasAnyEntry = false
+    CATEGORIES.forEach((category) => {
+      const nonEmptyEntries = entries[category.key].filter((entry) =>
+        Object.entries(entry).some(([key, value]) => !key.startsWith('_') && value.trim().length > 0),
+      )
+      if (nonEmptyEntries.length > 0) hasAnyEntry = true
+      setCategoryEntries(category.key as SpecCategoryKey, nonEmptyEntries)
+    })
+    setHasSpec(hasAnyEntry)
+    navigate('/mypage/specs')
   }
 
   return (
@@ -288,13 +289,20 @@ export default function SpecEditPage() {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/mypage/specs')}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-700"
+            disabled={hasUnverifiedRequiredEntry}
+            onClick={handleSave}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
           >
             저장하기
           </button>
         </div>
       </div>
+
+      {hasUnverifiedRequiredEntry && (
+        <p className="mt-3 text-[12.5px] font-medium text-amber-600">
+          * 인증이 필요한 항목이 있어요. 증빙자료를 첨부해 인증을 완료해야 저장할 수 있어요.
+        </p>
+      )}
 
       <div className="mt-5 flex flex-col gap-4">
         {CATEGORIES.map((category) => {
@@ -444,7 +452,13 @@ export default function SpecEditPage() {
         })}
       </div>
 
-      <div className="mt-5 flex justify-end gap-2">
+      {hasUnverifiedRequiredEntry && (
+        <p className="mt-5 text-[12.5px] font-medium text-amber-600">
+          * 인증이 필요한 항목이 있어요. 증빙자료를 첨부해 인증을 완료해야 저장할 수 있어요.
+        </p>
+      )}
+
+      <div className="mt-3 flex justify-end gap-2">
         <button
           type="button"
           onClick={() => navigate('/mypage/specs')}
@@ -454,8 +468,9 @@ export default function SpecEditPage() {
         </button>
         <button
           type="button"
-          onClick={() => navigate('/mypage/specs')}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-blue-700"
+          disabled={hasUnverifiedRequiredEntry}
+          onClick={handleSave}
+          className="rounded-lg bg-blue-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
         >
           저장하기
         </button>

@@ -33,6 +33,7 @@ export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' |
   if (!user) return null
 
   const isDark = variant === 'dark'
+  const displayName = user.nickname || user.name
 
   return (
     <div ref={rootRef} className="relative flex items-center gap-4">
@@ -48,9 +49,9 @@ export default function ProfileMenu({ variant = 'light' }: { variant?: 'light' |
             isDark ? 'bg-white/20 text-white' : 'bg-blue-600 text-white'
           }`}
         >
-          {user.name.slice(0, 1)}
+          {displayName.slice(0, 1)}
         </span>
-        {user.name}님
+        {displayName}님
         <ChevronDown className={`h-3.5 w-3.5 ${isDark ? 'opacity-80' : 'text-gray-400'}`} />
       </button>
 

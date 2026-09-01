@@ -17,15 +17,7 @@ import PenguinMascot from '../../components/ui/PenguinMascot'
 import PenguinHero from '../../components/ui/PenguinHero'
 import RankPagination from '../../components/compare/RankPagination'
 import { useAuth } from '../../context/AuthContext'
-
-const PROFILE_FIELDS = [
-  { icon: Building2, label: '학교', value: '단국대학교' },
-  { icon: FileText, label: '학과', value: '경영학과' },
-  { icon: GraduationCap, label: '학년', value: '4학년' },
-  { icon: Target, label: '희망 직무', value: '마케팅' },
-  { icon: Award, label: '전공 학점', value: '4.35 / 4.5' },
-  { icon: Award, label: '평균 학점', value: '4.29 / 4.5' },
-]
+import { useSpec, type SpecEntry } from '../../context/SpecContext'
 
 const REGISTERABLE_ITEMS = [
   { icon: GraduationCap, label: '학점', description: '재학중이거나 1학년일 경우 학점을 등록해요.' },
@@ -36,55 +28,10 @@ const REGISTERABLE_ITEMS = [
   { icon: Trophy, label: '수상', description: '수상 내역과 성과를 등록해요.' },
 ]
 
-const SUMMARY_STATS = [
-  { icon: Globe2, label: '어학', value: 'TOEIC 780' },
-  { icon: Award, label: '자격증', value: '4개' },
-  { icon: Briefcase, label: '대외활동', value: '3회' },
-  { icon: Users, label: '인턴', value: '1회' },
-  { icon: Trophy, label: '수상', value: '1회' },
-]
-
-const CERTS = [
-  { name: 'ADsP', date: '2024.05.10' },
-  { name: '컴퓨터활용능력 2급', date: '2023.09.15' },
-  { name: 'SQLD', date: '2024.01.20' },
-  { name: '무역영어 1급', date: '2023.12.05' },
-  { name: 'GTQ 1급', date: '2023.06.20' },
-]
 const CERTS_PAGE_SIZE = 6
-
-const ACTIVITIES = [
-  { name: '교내 마케팅 서포터즈 3기', period: '2024.03 - 2024.11' },
-  { name: '한국경제 대학생 기자단 21기', period: '2023.09 - 2024.02' },
-  { name: '대학 연합 마케팅 컨퍼런스 운영진', period: '2023.05 - 2023.11' },
-]
 const ACTIVITIES_PAGE_SIZE = 4
 
-const INTERNSHIPS = [
-  {
-    company: 'ABC 마케팅 인턴',
-    period: '2024.06 - 2024.08',
-    tasks: ['SNS 콘텐츠 기획 및 운영', '시장 조사 및 경쟁사 분석', '프로모션 성과 분석 및 리포트 제작'],
-  },
-  {
-    company: 'XYZ 브랜드전략팀 인턴',
-    period: '2023.12 - 2024.02',
-    tasks: ['시장 트렌드 리서치', 'SNS 채널 운영 지원', '브랜드 캠페인 기획 보조'],
-  },
-]
-
-const AWARDS = [
-  {
-    title: '마케팅 아이디어 공모전 장려상',
-    date: '2024.06',
-    details: ['주최: 한국마케팅협회', '수상작: 대학생 잠재고객 브랜드 캠페인 제안'],
-  },
-  {
-    title: '대학생 브랜드 마케팅 챌린지 우수상',
-    date: '2023.11',
-    details: ['주최: 대한마케팅학회', '수상작: SNS 바이럴 캠페인 기획안'],
-  },
-]
+const EMPTY_STATE_TEXT = '아직 등록된 항목이 없어요.'
 
 function DetailCard({
   icon: Icon,
@@ -124,11 +71,91 @@ function DetailCard({
   )
 }
 
-function CertsCard() {
+function EmptyCardState() {
+  return <p className="text-[12.5px] text-gray-400">{EMPTY_STATE_TEXT}</p>
+}
+
+function GpaCard({ gpaEntry }: { gpaEntry?: SpecEntry }) {
+  if (!gpaEntry) {
+    return (
+      <DetailCard icon={GraduationCap} title="학업">
+        <EmptyCardState />
+      </DetailCard>
+    )
+  }
+
+  const average = Number.parseFloat(gpaEntry.gpaAverage ?? '')
+  const percent = Number.isFinite(average) ? Math.min(100, Math.max(0, (average / 4.5) * 100)) : 0
+
+  return (
+    <DetailCard icon={GraduationCap} title="학업">
+      <div>
+        <span className="text-[20px] font-bold text-ink-900">
+          {gpaEntry.gpaAverage || '-'} / 4.5
+        </span>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
+          <div className="h-full rounded-full bg-blue-600" style={{ width: `${percent}%` }} />
+        </div>
+        {gpaEntry.majorGpaAverage && (
+          <p className="mt-1.5 text-[11.5px] text-gray-400">
+            전공 평점평균 {gpaEntry.majorGpaAverage} / 4.5
+          </p>
+        )}
+      </div>
+    </DetailCard>
+  )
+}
+
+function LanguageCard({ languageEntries }: { languageEntries: SpecEntry[] }) {
+  if (languageEntries.length === 0) {
+    return (
+      <DetailCard icon={Globe2} title="어학">
+        <EmptyCardState />
+      </DetailCard>
+    )
+  }
+
+  return (
+    <DetailCard icon={Globe2} title="어학">
+      <div className="flex flex-col gap-4">
+        {languageEntries.map((entry, index) => {
+          const numericScore = Number.parseFloat(entry.score ?? '')
+          const showBar = Number.isFinite(numericScore) && entry.test?.startsWith('TOEIC')
+          const percent = showBar ? Math.min(100, Math.max(0, (numericScore / 990) * 100)) : 0
+
+          return (
+            <div key={`${entry.test}-${index}`}>
+              <span className="text-[13px] font-medium text-gray-500">{entry.test || '어학'}</span>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-[18px] font-bold text-ink-900">{entry.score || '-'}</span>
+                {showBar && (
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full rounded-full bg-blue-600" style={{ width: `${percent}%` }} />
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </DetailCard>
+  )
+}
+
+function CertsCard({ certEntries }: { certEntries: SpecEntry[] }) {
   const [page, setPage] = useState(1)
-  const totalPages = Math.max(1, Math.ceil(CERTS.length / CERTS_PAGE_SIZE))
+
+  if (certEntries.length === 0) {
+    return (
+      <DetailCard icon={Award} title="자격증">
+        <EmptyCardState />
+      </DetailCard>
+    )
+  }
+
+  const totalPages = Math.max(1, Math.ceil(certEntries.length / CERTS_PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
-  const items = CERTS.slice((currentPage - 1) * CERTS_PAGE_SIZE, currentPage * CERTS_PAGE_SIZE)
+  const items = certEntries.slice((currentPage - 1) * CERTS_PAGE_SIZE, currentPage * CERTS_PAGE_SIZE)
 
   return (
     <DetailCard
@@ -139,8 +166,8 @@ function CertsCard() {
       }
     >
       <ul className="flex flex-col gap-2.5">
-        {items.map((cert) => (
-          <li key={cert.name} className="flex items-center justify-between text-[13.5px]">
+        {items.map((cert, index) => (
+          <li key={`${cert.name}-${index}`} className="flex items-center justify-between text-[13.5px]">
             <span className="font-medium text-ink-900">{cert.name}</span>
             <span className="text-gray-400">{cert.date}</span>
           </li>
@@ -150,11 +177,20 @@ function CertsCard() {
   )
 }
 
-function ActivitiesCard() {
+function ActivitiesCard({ activityEntries }: { activityEntries: SpecEntry[] }) {
   const [page, setPage] = useState(1)
-  const totalPages = Math.max(1, Math.ceil(ACTIVITIES.length / ACTIVITIES_PAGE_SIZE))
+
+  if (activityEntries.length === 0) {
+    return (
+      <DetailCard icon={Briefcase} title="대외활동">
+        <EmptyCardState />
+      </DetailCard>
+    )
+  }
+
+  const totalPages = Math.max(1, Math.ceil(activityEntries.length / ACTIVITIES_PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
-  const items = ACTIVITIES.slice(
+  const items = activityEntries.slice(
     (currentPage - 1) * ACTIVITIES_PAGE_SIZE,
     currentPage * ACTIVITIES_PAGE_SIZE,
   )
@@ -168,8 +204,8 @@ function ActivitiesCard() {
       }
     >
       <ul className="flex flex-col gap-2.5">
-        {items.map((activity) => (
-          <li key={activity.name} className="text-[13.5px]">
+        {items.map((activity, index) => (
+          <li key={`${activity.name}-${index}`} className="text-[13.5px]">
             <p className="font-medium text-ink-900">{activity.name}</p>
             <p className="text-[12px] text-gray-400">{activity.period}</p>
           </li>
@@ -179,11 +215,20 @@ function ActivitiesCard() {
   )
 }
 
-function InternshipsCard() {
+function InternshipsCard({ internEntries }: { internEntries: SpecEntry[] }) {
   const [page, setPage] = useState(1)
-  const totalPages = INTERNSHIPS.length
+
+  if (internEntries.length === 0) {
+    return (
+      <DetailCard icon={Users} title="인턴 경험">
+        <EmptyCardState />
+      </DetailCard>
+    )
+  }
+
+  const totalPages = internEntries.length
   const currentPage = Math.min(page, totalPages)
-  const intern = INTERNSHIPS[currentPage - 1]
+  const intern = internEntries[currentPage - 1]
 
   return (
     <DetailCard
@@ -195,23 +240,25 @@ function InternshipsCard() {
     >
       <p className="text-[13.5px] font-medium text-ink-900">{intern.company}</p>
       <p className="text-[12px] text-gray-400">{intern.period}</p>
-      <ul className="mt-2.5 flex flex-col gap-1.5">
-        {intern.tasks.map((task) => (
-          <li key={task} className="flex gap-1.5 text-[12.5px] text-gray-500">
-            <span>·</span>
-            {task}
-          </li>
-        ))}
-      </ul>
+      {intern.detail && <p className="mt-2.5 text-[12.5px] text-gray-500">{intern.detail}</p>}
     </DetailCard>
   )
 }
 
-function AwardsCard() {
+function AwardsCard({ awardEntries }: { awardEntries: SpecEntry[] }) {
   const [page, setPage] = useState(1)
-  const totalPages = AWARDS.length
+
+  if (awardEntries.length === 0) {
+    return (
+      <DetailCard icon={Trophy} title="수상">
+        <EmptyCardState />
+      </DetailCard>
+    )
+  }
+
+  const totalPages = awardEntries.length
   const currentPage = Math.min(page, totalPages)
-  const award = AWARDS[currentPage - 1]
+  const award = awardEntries[currentPage - 1]
 
   return (
     <DetailCard
@@ -221,22 +268,17 @@ function AwardsCard() {
         <RankPagination currentPage={currentPage} totalPages={totalPages} onChange={setPage} />
       }
     >
-      <p className="text-[13.5px] font-medium text-ink-900">{award.title}</p>
+      <p className="text-[13.5px] font-medium text-ink-900">{award.name}</p>
       <p className="text-[12px] text-gray-400">{award.date}</p>
-      <ul className="mt-2.5 flex flex-col gap-1.5">
-        {award.details.map((detail) => (
-          <li key={detail} className="flex gap-1.5 text-[12.5px] text-gray-500">
-            <span>·</span>
-            {detail}
-          </li>
-        ))}
-      </ul>
+      {award.host && <p className="mt-2.5 text-[12.5px] text-gray-500">주최: {award.host}</p>}
+      {award.detail && <p className="mt-1 text-[12.5px] text-gray-500">{award.detail}</p>}
     </DetailCard>
   )
 }
 
 export default function MySpecsPage() {
   const { user } = useAuth()
+  const { entries } = useSpec()
   const navigate = useNavigate()
 
   if (!user?.hasSpec) {
@@ -286,6 +328,44 @@ export default function MySpecsPage() {
     )
   }
 
+  const gpaEntry = entries.gpa[0]
+
+  const profileFields = [
+    { icon: Building2, label: '학교', value: user.school || '미입력' },
+    { icon: FileText, label: '학과', value: user.department || '미입력' },
+    { icon: GraduationCap, label: '학년', value: user.grade || '미입력' },
+    { icon: Target, label: '희망 직무', value: user.desiredJob || '미입력' },
+    {
+      icon: Award,
+      label: '전공 학점',
+      value: gpaEntry?.majorGpaAverage ? `${gpaEntry.majorGpaAverage} / 4.5` : '미등록',
+    },
+    {
+      icon: Award,
+      label: '평균 학점',
+      value: gpaEntry?.gpaAverage ? `${gpaEntry.gpaAverage} / 4.5` : '미등록',
+    },
+  ]
+
+  const primaryLanguage = entries.language[0]
+  const languageSummary = primaryLanguage
+    ? `${primaryLanguage.test || '어학'} ${primaryLanguage.score ?? ''}`.trim() +
+      (entries.language.length > 1 ? ` 외 ${entries.language.length - 1}건` : '')
+    : '미등록'
+
+  const summaryStats = [
+    { icon: Globe2, label: '어학', value: languageSummary },
+    { icon: Award, label: '자격증', value: `${entries.certificate.length}개` },
+    { icon: Briefcase, label: '대외활동', value: `${entries.activity.length}회` },
+    { icon: Users, label: '인턴', value: `${entries.intern.length}회` },
+    { icon: Trophy, label: '수상', value: `${entries.award.length}회` },
+  ]
+
+  const profileLine = [
+    [user.school, user.department, user.grade].filter(Boolean).join(' ') || '학교 정보 미입력',
+    user.desiredJob ? `${user.desiredJob} 희망` : '희망 직무 미입력',
+  ].join(' · ')
+
   return (
     <MyPageLayout>
       <div className="flex items-start justify-between">
@@ -310,15 +390,18 @@ export default function MySpecsPage() {
         <div className="flex items-center gap-4">
           <PenguinMascot className="h-14 w-14" />
           <div>
-            <span className="text-[16px] font-bold text-ink-900">유경</span>
-            <p className="mt-0.5 text-[13px] text-gray-500">
-              단국대학교 경영학과 4학년 · 마케팅 희망
-            </p>
+            <span className="flex items-center gap-1.5">
+              <span className="text-[16px] font-bold text-ink-900">{user.name}</span>
+              {user.nickname && (
+                <span className="text-[12.5px] font-medium text-gray-400">({user.nickname})</span>
+              )}
+            </span>
+            <p className="mt-0.5 text-[13px] text-gray-500">{profileLine}</p>
           </div>
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 sm:grid-cols-3 lg:grid-cols-6">
-          {PROFILE_FIELDS.map((field) => (
+          {profileFields.map((field) => (
             <div key={field.label} className="flex items-center gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-gray-500">
                 <field.icon className="h-4 w-4" />
@@ -332,7 +415,7 @@ export default function MySpecsPage() {
         </div>
 
         <div className="mt-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 sm:grid-cols-3 lg:grid-cols-5">
-          {SUMMARY_STATS.map((stat) => (
+          {summaryStats.map((stat) => (
             <div key={stat.label} className="flex items-center gap-2">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50 text-gray-500">
                 <stat.icon className="h-4 w-4" />
@@ -349,43 +432,12 @@ export default function MySpecsPage() {
       <h2 className="mb-4 mt-8 text-[16px] font-bold text-ink-900">상세 스펙</h2>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <DetailCard icon={GraduationCap} title="학업">
-          <div>
-            <span className="text-[20px] font-bold text-ink-900">4.29 / 4.5</span>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
-              <div className="h-full w-[95%] rounded-full bg-blue-600" />
-            </div>
-            <p className="mt-1.5 text-[11.5px] text-gray-400">전공 평균 3.65 / 4.5</p>
-          </div>
-        </DetailCard>
-
-        <DetailCard icon={Globe2} title="어학">
-          <div className="flex flex-col gap-4">
-            <div>
-              <span className="text-[13px] font-medium text-gray-500">TOEIC</span>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-[18px] font-bold text-ink-900">780</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full w-[78%] rounded-full bg-blue-600" />
-                </div>
-              </div>
-            </div>
-            <div>
-              <span className="text-[13px] font-medium text-gray-500">OPIc</span>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-[18px] font-bold text-ink-900">IH</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
-                  <div className="h-full w-[72%] rounded-full bg-blue-600" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </DetailCard>
-
-        <CertsCard />
-        <ActivitiesCard />
-        <InternshipsCard />
-        <AwardsCard />
+        <GpaCard gpaEntry={gpaEntry} />
+        <LanguageCard languageEntries={entries.language} />
+        <CertsCard certEntries={entries.certificate} />
+        <ActivitiesCard activityEntries={entries.activity} />
+        <InternshipsCard internEntries={entries.intern} />
+        <AwardsCard awardEntries={entries.award} />
       </div>
     </MyPageLayout>
   )

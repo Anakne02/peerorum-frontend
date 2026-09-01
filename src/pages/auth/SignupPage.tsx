@@ -69,6 +69,31 @@ const NICKNAME_SUGGESTIONS = [
   '상위1%도전자',
   '꾸준한다람쥐',
   '취준왕독수리',
+  '갓생러',
+  '자소서장인',
+  '면접뿌셔클럽',
+  '불꽃취준러',
+  '스펙업파이터',
+  '오늘도최선',
+  '내일은합격',
+  '초록불청춘',
+  '느긋한거북이',
+  '용맹한호랑이',
+  '지혜로운부엉이',
+  '민첩한여우',
+  '단단한곰돌이',
+  '날쌘치타',
+  '든든한불곰',
+  '재빠른다람쥐',
+  '평화로운비둘기',
+  '용감한사자',
+  '성실한개미',
+  '반짝이는별',
+  '두근두근합격',
+  '차근차근성장',
+  '작심삼일탈출',
+  '불타는의지',
+  '한걸음씩전진',
 ]
 
 const SPEC_LINK_GUIDE = [
@@ -184,7 +209,7 @@ export default function SignupPage() {
   }
 
   const finishSignup = (destination: '/mypage/specs' | '/') => {
-    login({ name, hasSpec: false, role: 'user' })
+    login({ name, email, school, department, grade, desiredJob, nickname, hasSpec: false, role: 'user' })
     navigate(destination)
   }
 

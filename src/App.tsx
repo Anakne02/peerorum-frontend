@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { SpecProvider } from './context/SpecContext'
 import RequireAdmin from './components/auth/RequireAdmin'
 import ScrollToTop from './components/ScrollToTop'
 import LandingPage from './pages/LandingPage'
@@ -38,71 +39,73 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/feedback" element={<FeedbackBoardPage />} />
-          <Route path="/feedback/:id" element={<FeedbackDetailPage />} />
+        <SpecProvider>
+          <ScrollToTop />
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/feedback" element={<FeedbackBoardPage />} />
+            <Route path="/feedback/:id" element={<FeedbackDetailPage />} />
 
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/signup" element={<SignupPage />} />
 
-          <Route path="/mypage/specs" element={<MySpecsPage />} />
-          <Route path="/mypage/specs/register" element={<SpecRegisterPage />} />
-          <Route path="/mypage/specs/edit" element={<SpecEditPage />} />
-          <Route path="/mypage/verification" element={<VerificationStatusPage />} />
-          <Route path="/mypage/verification/edit-info" element={<PersonalInfoEditPage />} />
-          <Route path="/mypage/settings/account" element={<AccountSettingsPage />} />
+            <Route path="/mypage/specs" element={<MySpecsPage />} />
+            <Route path="/mypage/specs/register" element={<SpecRegisterPage />} />
+            <Route path="/mypage/specs/edit" element={<SpecEditPage />} />
+            <Route path="/mypage/verification" element={<VerificationStatusPage />} />
+            <Route path="/mypage/verification/edit-info" element={<PersonalInfoEditPage />} />
+            <Route path="/mypage/settings/account" element={<AccountSettingsPage />} />
 
-          <Route path="/compare" element={<ComparePage />} />
-          <Route path="/compare/:studentId" element={<AnonymousProfileDetailPage />} />
+            <Route path="/compare" element={<ComparePage />} />
+            <Route path="/compare/:studentId" element={<AnonymousProfileDetailPage />} />
 
-          <Route
-            path="/admin"
-            element={
-              <RequireAdmin>
-                <AdminDashboardPage />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <RequireAdmin>
-                <AdminUsersPage />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/verifications"
-            element={
-              <RequireAdmin>
-                <AdminVerificationsPage />
-              </RequireAdmin>
-            }
-          />
-          <Route
-            path="/admin/suspensions"
-            element={
-              <RequireAdmin>
-                <AdminSuspensionsPage />
-              </RequireAdmin>
-            }
-          />
-          {ADMIN_PLACEHOLDER_ROUTES.map((route) => (
             <Route
-              key={route.path}
-              path={route.path}
+              path="/admin"
               element={
                 <RequireAdmin>
-                  <AdminPlaceholderPage title={route.title} />
+                  <AdminDashboardPage />
                 </RequireAdmin>
               }
             />
-          ))}
-        </Routes>
+            <Route
+              path="/admin/users"
+              element={
+                <RequireAdmin>
+                  <AdminUsersPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/verifications"
+              element={
+                <RequireAdmin>
+                  <AdminVerificationsPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/suspensions"
+              element={
+                <RequireAdmin>
+                  <AdminSuspensionsPage />
+                </RequireAdmin>
+              }
+            />
+            {ADMIN_PLACEHOLDER_ROUTES.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <RequireAdmin>
+                    <AdminPlaceholderPage title={route.title} />
+                  </RequireAdmin>
+                }
+              />
+            ))}
+          </Routes>
+        </SpecProvider>
       </AuthProvider>
     </BrowserRouter>
   )
