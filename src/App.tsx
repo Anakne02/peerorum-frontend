@@ -6,6 +6,7 @@ import ScrollToTop from './components/ScrollToTop'
 import LandingPage from './pages/LandingPage'
 import FeedbackBoardPage from './pages/FeedbackBoardPage'
 import FeedbackDetailPage from './pages/FeedbackDetailPage'
+import OAuth2RedirectHandler from './pages/auth/OAuth2RedirectHandler'
 import LoginPage from './pages/auth/LoginPage'
 import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 import ResetPasswordPage from './pages/auth/ResetPasswordPage'
@@ -47,6 +48,8 @@ function App() {
             <Route path="/feedback/:id" element={<FeedbackDetailPage />} />
 
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/signup" element={<SignupPage />} />
