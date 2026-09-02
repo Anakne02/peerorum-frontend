@@ -16,6 +16,7 @@ import PenguinMascot from '../../components/ui/PenguinMascot'
 import AuthLayout from '../../layouts/AuthLayout'
 import { LEGAL_TERMS } from '../../data/legalTerms'
 import { JOB_CATEGORIES } from '../../data/jobCategories'
+import { COLLEGES } from '../../data/departments'
 import { useAuth } from '../../context/AuthContext'
 
 type Step = 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
@@ -41,12 +42,12 @@ const TERMS = [
   {
     key: 'certification',
     title: '스펙 인증 운영정책 (필수)',
-    body: `제 1조 (목적)
-본 운영정책은 피어오름(이하 "서비스")에서 제공하는 스펙 인증 서비스의 운영 기준 및 절차를 규정함으로써, 정확하고 신뢰할 수 있는 정보를 제공하는 것을 목적으로 합니다.
-
-제 2조 (인증 대상)
-회원은 다음 항목에 대하여 인증을 신청할 수 있습니다.
-· 학점`,
+    body: LEGAL_TERMS['스펙 인증 운영정책'].body,
+  },
+  {
+    key: 'anonymous',
+    title: '익명 정보 제공 및 활용 동의 (필수)',
+    body: LEGAL_TERMS['익명 정보 제공 및 활용 동의'].body,
   },
   {
     key: 'marketing',
@@ -68,6 +69,31 @@ const NICKNAME_SUGGESTIONS = [
   '상위1%도전자',
   '꾸준한다람쥐',
   '취준왕독수리',
+  '갓생러',
+  '자소서장인',
+  '면접뿌셔클럽',
+  '불꽃취준러',
+  '스펙업파이터',
+  '오늘도최선',
+  '내일은합격',
+  '초록불청춘',
+  '느긋한거북이',
+  '용맹한호랑이',
+  '지혜로운부엉이',
+  '민첩한여우',
+  '단단한곰돌이',
+  '날쌘치타',
+  '든든한불곰',
+  '재빠른다람쥐',
+  '평화로운비둘기',
+  '용감한사자',
+  '성실한개미',
+  '반짝이는별',
+  '두근두근합격',
+  '차근차근성장',
+  '작심삼일탈출',
+  '불타는의지',
+  '한걸음씩전진',
 ]
 
 const SPEC_LINK_GUIDE = [
@@ -129,6 +155,7 @@ export default function SignupPage() {
     service: false,
     privacy: false,
     certification: false,
+    anonymous: false,
     marketing: false,
   })
 
@@ -150,7 +177,14 @@ export default function SignupPage() {
   const allChecked = Object.values(checked).every(Boolean)
   const toggleAll = () => {
     const next = !allChecked
-    setChecked({ age: next, service: next, privacy: next, certification: next, marketing: next })
+    setChecked({
+      age: next,
+      service: next,
+      privacy: next,
+      certification: next,
+      anonymous: next,
+      marketing: next,
+    })
   }
 
   const stepIndex = STEP_ORDER.indexOf(step)
@@ -175,7 +209,7 @@ export default function SignupPage() {
   }
 
   const finishSignup = (destination: '/mypage/specs' | '/') => {
-    login({ name, hasSpec: false, role: 'user' })
+    login({ name, email, school, department, grade, desiredJob, nickname, hasSpec: false, role: 'user' })
     navigate(destination)
   }
 
@@ -385,10 +419,13 @@ export default function SignupPage() {
                     <option value="" disabled>
                       학과를 선택해주세요
                     </option>
-                    <option>경영학과</option>
-                    <option>경제학과</option>
-                    <option>컴퓨터공학과</option>
-                    <option>디자인학과</option>
+                    {COLLEGES.map((college) => (
+                      <optgroup key={college.college} label={college.college}>
+                        {college.departments.map((department) => (
+                          <option key={department}>{department}</option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                 </div>

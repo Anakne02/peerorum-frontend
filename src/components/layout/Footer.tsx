@@ -27,7 +27,12 @@ const SERVICE_LINKS = [
   { label: "이용 방법", href: "/#how-to-use" },
   { label: "고객지원", href: "/#support" },
 ];
-const LEGAL_LINKS = ["개인정보처리방침", "이용약관", "스펙 인증 운영정책"];
+const LEGAL_LINKS = [
+  "개인정보처리방침",
+  "이용약관",
+  "스펙 인증 운영정책",
+  "익명 정보 제공 및 활용 동의",
+];
 
 export default function Footer() {
   const [activeTerm, setActiveTerm] = useState<string | null>(null);

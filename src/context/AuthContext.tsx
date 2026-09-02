@@ -2,8 +2,14 @@ import { createContext, useContext, useState, type ReactNode } from 'react'
 
 export type UserRole = 'user' | 'admin'
 
-interface AuthUser {
+export interface AuthUser {
   name: string
+  nickname: string
+  email: string
+  school: string
+  department: string
+  grade: string
+  desiredJob: string
   hasSpec: boolean
   role: UserRole
 }
@@ -15,6 +21,7 @@ interface AuthContextValue {
   login: (user?: Partial<AuthUser>) => void
   logout: () => void
   setHasSpec: (hasSpec: boolean) => void
+  updateProfile: (partial: Partial<AuthUser>) => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -24,8 +31,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login: AuthContextValue['login'] = (partial) => {
     setUser({
-      name: partial?.name ?? '유경',
-      hasSpec: partial?.hasSpec ?? true,
+      name: partial?.name ?? '회원',
+      nickname: partial?.nickname ?? '',
+      email: partial?.email ?? '',
+      school: partial?.school ?? '',
+      department: partial?.department ?? '',
+      grade: partial?.grade ?? '',
+      desiredJob: partial?.desiredJob ?? '',
+      hasSpec: partial?.hasSpec ?? false,
       role: partial?.role ?? 'user',
     })
   }
@@ -34,6 +47,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setHasSpec = (hasSpec: boolean) => {
     setUser((prev) => (prev ? { ...prev, hasSpec } : prev))
+  }
+
+  const updateProfile = (partial: Partial<AuthUser>) => {
+    setUser((prev) => (prev ? { ...prev, ...partial } : prev))
   }
 
   return (
@@ -45,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         setHasSpec,
+        updateProfile,
       }}
     >
       {children}

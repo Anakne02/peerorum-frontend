@@ -1,19 +1,21 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MyPageLayout from '../../layouts/MyPageLayout'
+import { useAuth } from '../../context/AuthContext'
 
 const GRADE_OPTIONS = ['1학년', '2학년', '3학년', '4학년']
 
 export default function PersonalInfoEditPage() {
   const navigate = useNavigate()
+  const { user, updateProfile } = useAuth()
   const [form, setForm] = useState({
-    name: '유경',
-    nickname: '열정펭귄',
-    email: 'marketing@dankook.ac.kr',
-    school: '단국대학교',
-    department: '경영학과',
-    grade: '4학년',
-    desiredJob: '마케팅',
+    name: user?.name ?? '',
+    nickname: user?.nickname ?? '',
+    email: user?.email ?? '',
+    school: user?.school ?? '',
+    department: user?.department ?? '',
+    grade: user?.grade || GRADE_OPTIONS[0],
+    desiredJob: user?.desiredJob ?? '',
   })
 
   const update = (key: keyof typeof form, value: string) => {
@@ -22,6 +24,7 @@ export default function PersonalInfoEditPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    updateProfile(form)
     navigate('/mypage/settings/account')
   }
 
