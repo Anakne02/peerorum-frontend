@@ -40,20 +40,6 @@ const DEFAULT_GPA_RANGE = GPA_RANGES[0]
 const DEFAULT_COMPARE_CRITERION = COMPARE_CRITERIA[0]
 const RANK_PAGE_SIZE = 10
 
-function isInGpaRange(gpa: number, range: string) {
-  switch (range) {
-    case '4.5 ~ 4.0':
-      return gpa >= 4.0
-    case '3.9 ~ 3.5':
-      return gpa >= 3.5 && gpa < 4.0
-    case '3.4 ~ 3.0':
-      return gpa >= 3.0 && gpa < 3.5
-    case '2.9 ~ 2.5':
-      return gpa >= 2.5 && gpa < 3.0
-    default:
-      return gpa < 2.5
-  }
-}
 
 export default function CompareSpec2Page() {
   const navigate = useNavigate()
