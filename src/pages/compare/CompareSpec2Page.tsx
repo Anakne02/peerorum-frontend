@@ -70,8 +70,8 @@ export default function CompareSpec2Page() {
 
     
     fetchSearchPeers({ major: appliedMajor, minGpa, maxGpa })
-      .then(res => setProfiles(res || []))
-      .catch(e => console.error(e))
+      .then((res: CompareSpecProfile[]) => setProfiles(res || []))
+      .catch((e: Error) => console.error(e))
       
   }, [appliedMajor, appliedGpaRange]);
 
