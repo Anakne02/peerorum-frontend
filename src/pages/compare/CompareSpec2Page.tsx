@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   BarChart3,
@@ -15,7 +15,8 @@ import Footer from '../../components/layout/Footer'
 import ProfileMenu from '../../components/layout/ProfileMenu'
 import RankBadge from '../../components/compare/RankBadge'
 import RankPagination from '../../components/compare/RankPagination'
-import { RANKED_STUDENTS } from '../../data/mockRankings'
+import { fetchSearchPeers, type CompareSpecProfile } from '../../api/compare'
+import { useEffect } from 'react'
 import { JOB_CATEGORIES } from '../../data/jobCategories'
 
 const HERO_STEPS = [
@@ -66,17 +67,38 @@ export default function CompareSpec2Page() {
   const [appliedCompareCriterion, setAppliedCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
   const [page, setPage] = useState(1)
 
+  const [pendingMajor, setPendingMajor] = useState('경영학부')
+  const [appliedMajor, setAppliedMajor] = useState('경영학부')
+  const [profiles, setProfiles] = useState<CompareSpecProfile[]>([])
+  
+
   const gpaColumnLabel = appliedCompareCriterion === '전공 학점만' ? '전공 학점' : '평균 학점'
 
-  const filteredStudents = useMemo(
-    () =>
-      RANKED_STUDENTS.filter(
-        (student) =>
-          student.department.includes(appliedGrade) &&
-          isInGpaRange(Number(student.gpa), appliedGpaRange),
-      ),
-    [appliedGrade, appliedGpaRange],
-  )
+  useEffect(() => {
+    let minGpa = 0; let maxGpa = 4.5;
+    if (appliedGpaRange === '4.5 ~ 4.0') { minGpa = 4.0; maxGpa = 4.5; }
+    else if (appliedGpaRange === '3.9 ~ 3.5') { minGpa = 3.5; maxGpa = 3.99; }
+    else if (appliedGpaRange === '3.4 ~ 3.0') { minGpa = 3.0; maxGpa = 3.49; }
+    else if (appliedGpaRange === '2.9 ~ 2.5') { minGpa = 2.5; maxGpa = 2.99; }
+    else { minGpa = 0.0; maxGpa = 2.49; }
+
+    
+    fetchSearchPeers({ major: appliedMajor, minGpa, maxGpa })
+      .then(res => setProfiles(res || []))
+      .catch(e => console.error(e))
+      
+  }, [appliedMajor, appliedGpaRange]);
+
+  const filteredStudents = profiles.map((p, i) => ({
+    anonId: p.anonymousUuid,
+    department: p.major,
+    gpa: p.gpa.toFixed(2),
+    gpaPercentile: Math.round(((i + 1) / (profiles.length || 1)) * 100),
+    lang: p.toeicScore > 0 ? 'TOEIC ' + p.toeicScore : '없음',
+    certs: p.verificationCount + '개',
+    intern: '없음',
+    rank: i + 1,
+  }))
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / RANK_PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -89,6 +111,7 @@ export default function CompareSpec2Page() {
     setAppliedGrade(pendingGrade)
     setAppliedGpaRange(pendingGpaRange)
     setAppliedCompareCriterion(pendingCompareCriterion)
+    setAppliedMajor(pendingMajor)
     setPage(1)
   }
 
@@ -97,9 +120,11 @@ export default function CompareSpec2Page() {
     setPendingGpaRange(DEFAULT_GPA_RANGE)
     setPendingJob(null)
     setPendingCompareCriterion(DEFAULT_COMPARE_CRITERION)
+    setPendingMajor('경영학부')
     setAppliedGrade(DEFAULT_GRADE)
     setAppliedGpaRange(DEFAULT_GPA_RANGE)
     setAppliedCompareCriterion(DEFAULT_COMPARE_CRITERION)
+    setAppliedMajor('경영학부')
     setPage(1)
   }
 
@@ -171,10 +196,13 @@ export default function CompareSpec2Page() {
               </label>
               <div className="relative">
                 <select
-                  defaultValue="경영학과"
+                  value={pendingMajor}
+                  onChange={(e) => setPendingMajor(e.target.value)}
                   className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] text-ink-900 outline-none focus:border-blue-500"
                 >
-                  <option>경영학과</option>
+                  <option value="경영학부">경영학부</option>
+                  <option value="컴퓨터공학과">컴퓨터공학과</option>
+                  <option value="경영학과">경영학과</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
               </div>
@@ -289,7 +317,7 @@ export default function CompareSpec2Page() {
 
         <section>
           <div className="flex flex-wrap items-center gap-2 text-[13px] text-gray-500">
-            {['경영학과', appliedGrade, `학점 ${appliedGpaRange}`].map((condition, index) => (
+            {[appliedMajor, appliedGrade, `학점 ${appliedGpaRange}`].map((condition, index) => (
               <span key={condition} className="flex items-center gap-2">
                 {index > 0 && <span className="text-gray-300">|</span>}
                 <span className="font-medium text-ink-900">{condition}</span>
