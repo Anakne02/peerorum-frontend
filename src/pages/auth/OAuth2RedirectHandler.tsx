@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { fetchMyProfile } from '../../api/profile'
 
 
 export default function OAuth2RedirectHandler() {
@@ -41,19 +42,43 @@ export default function OAuth2RedirectHandler() {
       localStorage.setItem('uuid', uuid)
     }
 
-    login({
-      name: 'User',
-      role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
-      hasSpec: normalizedRole !== 'ROLE_GUEST',
-    })
+    const processLogin = async () => {
+      if (normalizedRole === 'ROLE_GUEST') {
+        login({
+          name: 'User',
+          role: 'user',
+          hasSpec: false,
+        })
+        navigate('/signup', { replace: true })
+      } else {
+        try {
+          const profile = await fetchMyProfile()
+          login({
+            name: profile.name,
+            nickname: profile.nickname,
+            school: profile.university,
+            department: profile.major,
+            desiredJob: profile.desiredJob,
+            role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
+            hasSpec: true,
+          })
+        } catch (e) {
+          console.error('Failed to fetch profile', e)
+          login({
+            name: 'User',
+            role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
+            hasSpec: true,
+          })
+        }
 
-    if (normalizedRole === 'ROLE_GUEST') {
-      navigate('/signup', { replace: true })
-    } else if (normalizedRole === 'ROLE_ADMIN') {
-      navigate('/admin', { replace: true })
-    } else {
-      navigate('/mypage/specs', { replace: true })
+        if (normalizedRole === 'ROLE_ADMIN') {
+          navigate('/admin', { replace: true })
+        } else {
+          navigate('/mypage/specs', { replace: true })
+        }
+      }
     }
+    processLogin()
   }, [
     searchParams,
     navigate,

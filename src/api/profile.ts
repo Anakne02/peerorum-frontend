@@ -19,6 +19,7 @@ export interface MyActivityData {
 
 export interface MyProfileData {
   name: string
+  nickname: string
   university: string
   major: string
   entranceYear: number
