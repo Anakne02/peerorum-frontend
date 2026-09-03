@@ -146,10 +146,10 @@ function StepHeader({
 }
 
 export default function SignupPage() {
-  const { login } = useAuth()
+  const { login, isLoggedIn } = useAuth()
   const navigate = useNavigate()
 
-  const [step, setStep] = useState<Step>('account')
+  const [step, setStep] = useState<Step>(isLoggedIn ? 'terms' : 'account')
   const [checked, setChecked] = useState<Record<string, boolean>>({
     age: false,
     service: false,
