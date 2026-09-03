@@ -35,3 +35,15 @@ export const fetchMyProfile = async (): Promise<MyProfileData> => {
   const response = await api.get('/profiles/me')
   return response.data.data
 }
+
+export interface ProfileCreateData {
+  university: string
+  major: string
+  entranceYear: number
+  desiredJob: string
+  nickname: string
+}
+
+export const createMyProfile = async (data: ProfileCreateData): Promise<void> => {
+  await api.post('/profiles', data)
+}

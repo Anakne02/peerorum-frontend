@@ -18,6 +18,7 @@ import { LEGAL_TERMS } from '../../data/legalTerms'
 import { JOB_CATEGORIES } from '../../data/jobCategories'
 import { COLLEGES } from '../../data/departments'
 import { useAuth } from '../../context/AuthContext'
+import { createMyProfile } from '../../api/profile'
 
 type Step = 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
 
@@ -208,9 +209,26 @@ export default function SignupPage() {
     setNickname(pool[Math.floor(Math.random() * pool.length)])
   }
 
-  const finishSignup = (destination: '/mypage/specs' | '/') => {
-    login({ name, email, school, department, grade, desiredJob, nickname, hasSpec: false, role: 'user' })
-    navigate(destination)
+  const finishSignup = async (destination: '/mypage/specs' | '/') => {
+    try {
+      // Calculate entranceYear based on grade
+      const gradeNum = parseInt(grade.replace(/[^0-9]/g, '')) || 4
+      const currentYear = new Date().getFullYear()
+      const entranceYear = currentYear - gradeNum + 1
+
+      await createMyProfile({
+        university: school,
+        major: department || '미정',
+        entranceYear,
+        desiredJob,
+        nickname,
+      })
+      login({ name, email, school, department, grade, desiredJob, nickname, hasSpec: false, role: 'user' })
+      navigate(destination)
+    } catch (e) {
+      console.error('Profile creation failed:', e)
+      alert('프로필 저장 중 오류가 발생했습니다.')
+    }
   }
 
   if (step === 'account') {
