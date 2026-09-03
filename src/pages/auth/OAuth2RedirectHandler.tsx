@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext'
+import {
+  clearAuthenticationSession,
+  refreshAuthentication,
+  saveAuthenticationSession,
+} from '../../api/auth'
 import { fetchMyProfile } from '../../api/profile'
-
+import { useAuth } from '../../context/AuthContext'
 
 export default function OAuth2RedirectHandler() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { login } = useAuth()
-
-
   const handledRef = useRef(false)
 
   useEffect(() => {
@@ -19,71 +21,64 @@ export default function OAuth2RedirectHandler() {
 
     handledRef.current = true
 
-    const token = searchParams.get('token')
-    const role = searchParams.get('role')
-    const uuid = searchParams.get('uuid')
-    const normalizedRole =
-      role === 'ROLE_GUEST' ||
-      role === 'ROLE_USER' ||
-      role === 'ROLE_ADMIN'
-        ? role
-        : 'ROLE_USER'
+    const completeLogin = async () => {
+      const token = searchParams.get('token')
+      const role = searchParams.get('role')
+      const uuid = searchParams.get('uuid')
 
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
+      if (!token) {
+        navigate('/login?error=oauth2_failed', { replace: true })
+        return
+      }
 
-    localStorage.setItem('token', token)
+      localStorage.setItem('token', token)
+      if (role) localStorage.setItem('role', role)
+      if (uuid) localStorage.setItem('uuid', uuid)
 
-    localStorage.setItem('role', normalizedRole)
+      try {
+        const session = await refreshAuthentication()
+        saveAuthenticationSession(session)
 
-    if (uuid) {
-      localStorage.setItem('uuid', uuid)
-    }
+        if (session.role === 'ROLE_GUEST') {
+          login({
+            name: session.name,
+            role: 'user',
+            hasSpec: false,
+          })
+          navigate('/signup?mode=onboarding', { replace: true })
+          return
+        }
 
-    const processLogin = async () => {
-      if (normalizedRole === 'ROLE_GUEST') {
-        login({
-          name: 'User',
-          role: 'user',
-          hasSpec: false,
-        })
-        navigate('/signup', { replace: true })
-      } else {
+        let profile
         try {
-          const profile = await fetchMyProfile()
-          login({
-            name: profile.name,
-            nickname: profile.nickname,
-            school: profile.university,
-            department: profile.major,
-            desiredJob: profile.desiredJob,
-            role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
-            hasSpec: true,
-          })
-        } catch (e) {
-          console.error('Failed to fetch profile', e)
-          login({
-            name: 'User',
-            role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
-            hasSpec: true,
-          })
+          profile = await fetchMyProfile()
+        } catch (profileError) {
+          console.error('Failed to fetch profile after OAuth2 login', profileError)
         }
 
-        if (normalizedRole === 'ROLE_ADMIN') {
-          navigate('/admin', { replace: true })
-        } else {
-          navigate('/mypage/specs', { replace: true })
-        }
+        login({
+          name: profile?.name || session.name,
+          nickname: profile?.nickname || '',
+          school: profile?.university || '',
+          department: profile?.major || '',
+          desiredJob: profile?.desiredJob || '',
+          role: session.role === 'ROLE_ADMIN' ? 'admin' : 'user',
+          hasSpec: true,
+        })
+
+        navigate(
+          session.role === 'ROLE_ADMIN' ? '/admin' : '/mypage/specs',
+          { replace: true },
+        )
+      } catch (error) {
+        console.error('Failed to complete OAuth2 login', error)
+        clearAuthenticationSession()
+        navigate('/login?error=oauth2_failed', { replace: true })
       }
     }
-    processLogin()
-  }, [
-    searchParams,
-    navigate,
-    login,
-  ])
+
+    void completeLogin()
+  }, [searchParams, navigate, login])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
