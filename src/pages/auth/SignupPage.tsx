@@ -147,7 +147,7 @@ function StepHeader({
 }
 
 export default function SignupPage() {
-  const { login, isLoggedIn } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
 
   const [step, setStep] = useState<Step>(() => localStorage.getItem('token') ? 'terms' : 'account')
