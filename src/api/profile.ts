@@ -12,9 +12,26 @@ export interface MyCertificateData {
 export interface MyActivityData {
   id: number
   activityName: string
+  period: string
+  detail: string
   authKey: string
   status: string
   fileUrl: string
+}
+
+export interface MyInternData {
+  id: number
+  company: string
+  period: string
+  detail: string
+}
+
+export interface MyAwardData {
+  id: number
+  name: string
+  host: string
+  date: string
+  detail: string
 }
 
 export interface MyProfileData {
@@ -30,6 +47,8 @@ export interface MyProfileData {
   desiredJob: string
   certificates: MyCertificateData[]
   activities: MyActivityData[]
+  interns: MyInternData[]
+  awards: MyAwardData[]
 }
 
 export const fetchMyProfile = async (): Promise<MyProfileData> => {

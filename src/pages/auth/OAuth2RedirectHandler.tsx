@@ -7,11 +7,13 @@ import {
 } from '../../api/auth'
 import { fetchMyProfile } from '../../api/profile'
 import { useAuth } from '../../context/AuthContext'
+import { useSpec } from '../../context/SpecContext'
 
 export default function OAuth2RedirectHandler() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { loadFromProfile } = useSpec()
   const handledRef = useRef(false)
 
   useEffect(() => {
@@ -52,6 +54,7 @@ export default function OAuth2RedirectHandler() {
         let profile
         try {
           profile = await fetchMyProfile()
+          loadFromProfile(profile)
         } catch (profileError) {
           console.error('Failed to fetch profile after OAuth2 login', profileError)
         }
@@ -78,7 +81,7 @@ export default function OAuth2RedirectHandler() {
     }
 
     void completeLogin()
-  }, [searchParams, navigate, login])
+  }, [searchParams, navigate, login, loadFromProfile])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
