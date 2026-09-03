@@ -15,27 +15,33 @@ export default function EvidenceUploadModal({
   title: string
   exampleImage?: string
   description: string
-  onConfirm: (fileName: string) => void
+  onConfirm: (fileName: string, file: File) => void
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState('')
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [zoomOpen, setZoomOpen] = useState(false)
 
   const handleFiles = (files: FileList | null) => {
     const file = files?.[0]
-    if (file) setFileName(file.name)
+    if (file) {
+      setFileName(file.name)
+      setSelectedFile(file)
+    }
   }
 
   const handleClose = () => {
     setFileName('')
+    setSelectedFile(null)
     setZoomOpen(false)
     onClose()
   }
 
   const handleConfirm = () => {
-    if (!fileName) return
-    onConfirm(fileName)
+    if (!fileName || !selectedFile) return
+    onConfirm(fileName, selectedFile)
     setFileName('')
+    setSelectedFile(null)
     onClose()
   }
 
@@ -96,7 +102,7 @@ export default function EvidenceUploadModal({
           </span>
           <button
             type="button"
-            onClick={() => setFileName('')}
+            onClick={() => { setFileName(''); setSelectedFile(null); }}
             aria-label="선택 취소"
             className="shrink-0 text-blue-400 hover:text-blue-600"
           >

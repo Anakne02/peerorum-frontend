@@ -18,8 +18,12 @@ import {
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import { useAuth } from '../../context/AuthContext'
-import { useSpec, type SpecCategoryKey } from '../../context/SpecContext'
+import { useSpec } from '../../context/SpecContext'
 import EvidenceUploadModal from '../../components/mypage/EvidenceUploadModal'
+
+import { submitGpa, submitLanguage, submitCertificate, submitActivity, submitIntern, submitAward } from '../../api/spec'
+import { fetchMyProfile } from '../../api/profile'
+
 import gpaExampleImage from '../../assets/images/gpa-example.png'
 
 type FieldType = 'text' | 'number' | 'date' | 'textarea' | 'select' | 'buttongroup'
@@ -234,7 +238,7 @@ function FieldInput({
 export default function SpecRegisterPage() {
   const navigate = useNavigate()
   const { setHasSpec } = useAuth()
-  const { setCategoryEntries } = useSpec()
+  const { loadFromProfile } = useSpec()
 
   const [entries, setEntries] = useState<Record<string, Entry[]>>(() =>
     Object.fromEntries(CATEGORIES.map((c) => [c.key, []])),
@@ -274,16 +278,55 @@ export default function SpecRegisterPage() {
     }))
   }
 
-  const handleSubmit = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async () => {
     if (totalCompleteEntries === 0) return
-    CATEGORIES.forEach((category) => {
-      const completeEntries = entries[category.key].filter((entry) =>
-        isEntryComplete(category, entry),
-      )
-      setCategoryEntries(category.key as SpecCategoryKey, completeEntries)
-    })
-    setHasSpec(true)
-    navigate('/mypage/specs')
+    setIsSubmitting(true)
+    
+    try {
+      // 1. Submit unverified categories (Activity, Intern, Award)
+      for (const entry of entries.activity) {
+        if (isEntryComplete(CATEGORIES.find(c => c.key === 'activity')!, entry)) {
+          await submitActivity({
+            activityName: entry.name,
+            period: entry.period || '',
+            detail: entry.detail || '',
+          }, null)
+        }
+      }
+      for (const entry of entries.intern) {
+        if (isEntryComplete(CATEGORIES.find(c => c.key === 'intern')!, entry)) {
+          await submitIntern({
+            company: entry.company,
+            period: entry.period || '',
+            detail: entry.detail || '',
+          })
+        }
+      }
+      for (const entry of entries.award) {
+        if (isEntryComplete(CATEGORIES.find(c => c.key === 'award')!, entry)) {
+          await submitAward({
+            name: entry.name,
+            host: entry.host || '',
+            date: entry.date || '',
+            detail: entry.detail || '',
+          })
+        }
+      }
+
+      // 2. Fetch fresh data from backend and load it into context
+      const profileData = await fetchMyProfile()
+      loadFromProfile(profileData)
+      
+      setHasSpec(true)
+      navigate('/mypage/specs')
+    } catch (e) {
+      console.error('Failed to submit specs', e)
+      alert('스펙 저장 중 오류가 발생했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -499,11 +542,11 @@ export default function SpecRegisterPage() {
 
           <button
             type="button"
-            disabled={totalCompleteEntries === 0}
+            disabled={totalCompleteEntries === 0 || isSubmitting}
             onClick={handleSubmit}
             className="w-full rounded-xl bg-blue-600 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
           >
-            등록하기
+            {isSubmitting ? '등록 중...' : '등록하기'}
           </button>
           <p className="flex items-center justify-center gap-1.5 text-[12px] text-gray-400">
             <ShieldCheck className="h-3.5 w-3.5" />
@@ -563,12 +606,38 @@ export default function SpecRegisterPage() {
             title={activeCategory.title.replace(' 입력', '')}
             exampleImage={activeCategory.fileUpload.exampleImage}
             description={activeCategory.fileUpload.description}
-            onConfirm={(fileName) => {
+            onConfirm={async (fileName, file) => {
               updateEntry(target.categoryKey, target.index, '_fileName', fileName)
               updateEntry(target.categoryKey, target.index, '_status', 'pending')
-              setTimeout(() => {
+              
+              const entry = entries[target.categoryKey][target.index]
+              try {
+                if (target.categoryKey === 'gpa') {
+                  await submitGpa({
+                    gpa: parseFloat(entry.gpaAverage) || 0,
+                    scoreType: '4.5',
+                    percentile: parseFloat(entry.convertedScore) || 0,
+                    majorAverage: parseFloat(entry.majorGpaAverage) || 0,
+                  }, file)
+                } else if (target.categoryKey === 'language') {
+                  await submitLanguage({
+                    testName: entry.test || '',
+                    score: entry.score || '',
+                    date: entry.date || '',
+                  }, file)
+                } else if (target.categoryKey === 'certificate') {
+                  await submitCertificate({
+                    certName: entry.name || '',
+                    certNo: '', // Not strictly needed
+                    issueDate: entry.date || '',
+                  }, file)
+                }
                 updateEntry(target.categoryKey, target.index, '_status', 'verified')
-              }, 2500)
+              } catch (e) {
+                console.error('File upload failed', e)
+                updateEntry(target.categoryKey, target.index, '_status', 'rejected')
+                alert('파일 업로드 중 오류가 발생했습니다.')
+              }
             }}
           />
         )

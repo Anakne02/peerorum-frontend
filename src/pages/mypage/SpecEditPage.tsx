@@ -16,8 +16,12 @@ import {
 } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import { useAuth } from '../../context/AuthContext'
-import { useSpec, type SpecCategoryKey } from '../../context/SpecContext'
+import { useSpec } from '../../context/SpecContext'
 import EvidenceUploadModal from '../../components/mypage/EvidenceUploadModal'
+
+import { submitGpa, submitLanguage, submitCertificate, submitActivity, submitIntern, submitAward } from '../../api/spec'
+import { fetchMyProfile } from '../../api/profile'
+
 import gpaExampleImage from '../../assets/images/gpa-example.png'
 
 type FieldType = 'text' | 'number' | 'date' | 'textarea' | 'select' | 'buttongroup'
@@ -218,7 +222,7 @@ function FieldInput({
 export default function SpecEditPage() {
   const navigate = useNavigate()
   const { setHasSpec } = useAuth()
-  const { entries: savedEntries, setCategoryEntries } = useSpec()
+  const { entries: savedEntries, loadFromProfile } = useSpec()
   const [entries, setEntries] = useState<Record<string, Entry[]>>(savedEntries)
   const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
 
@@ -257,18 +261,58 @@ export default function SpecEditPage() {
     })
   })
 
-  const handleSave = () => {
-    let hasAnyEntry = false
-    CATEGORIES.forEach((category) => {
-      const nonEmptyEntries = entries[category.key].filter((entry) =>
-        Object.entries(entry).some(([key, value]) => !key.startsWith('_') && value.trim().length > 0),
-      )
-      if (nonEmptyEntries.length > 0) hasAnyEntry = true
-      setCategoryEntries(category.key as SpecCategoryKey, nonEmptyEntries)
-    })
-    setHasSpec(hasAnyEntry)
-    navigate('/mypage/specs')
+  
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSave = async () => {
+    setIsSubmitting(true)
+    
+    try {
+      // 1. Submit unverified categories (Activity, Intern, Award)
+      // Note: Full edit/delete is not supported by backend yet, so we just append them if they are complete.
+      for (const entry of entries.activity) {
+        if (entry.name && entry.name.trim().length > 0 && entry._status !== 'verified') {
+          await submitActivity({
+            activityName: entry.name,
+            period: entry.period || '',
+            detail: entry.detail || '',
+          }, null)
+        }
+      }
+      for (const entry of entries.intern) {
+        if (entry.company && entry.company.trim().length > 0 && entry._status !== 'verified') {
+          await submitIntern({
+            company: entry.company,
+            period: entry.period || '',
+            detail: entry.detail || '',
+          })
+        }
+      }
+      for (const entry of entries.award) {
+        if (entry.name && entry.name.trim().length > 0 && entry._status !== 'verified') {
+          await submitAward({
+            name: entry.name,
+            host: entry.host || '',
+            date: entry.date || '',
+            detail: entry.detail || '',
+          })
+        }
+      }
+
+      // 2. Fetch fresh data from backend and load it into context
+      const profileData = await fetchMyProfile()
+      loadFromProfile(profileData)
+      
+      setHasSpec(true)
+      navigate('/mypage/specs')
+    } catch (e) {
+      console.error('Failed to submit specs', e)
+      alert('스펙 저장 중 오류가 발생했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
+
 
   return (
     <MyPageLayout>
@@ -289,11 +333,11 @@ export default function SpecEditPage() {
           </button>
           <button
             type="button"
-            disabled={hasUnverifiedRequiredEntry}
+            disabled={hasUnverifiedRequiredEntry || isSubmitting}
             onClick={handleSave}
             className="rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
           >
-            저장하기
+            {isSubmitting ? '저장 중...' : '저장하기'}
           </button>
         </div>
       </div>
@@ -468,11 +512,11 @@ export default function SpecEditPage() {
         </button>
         <button
           type="button"
-          disabled={hasUnverifiedRequiredEntry}
+          disabled={hasUnverifiedRequiredEntry || isSubmitting}
           onClick={handleSave}
           className="rounded-lg bg-blue-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
         >
-          저장하기
+          {isSubmitting ? '저장 중...' : '저장하기'}
         </button>
       </div>
 
@@ -487,12 +531,38 @@ export default function SpecEditPage() {
             title={activeCategory.title}
             exampleImage={activeCategory.fileUpload.exampleImage}
             description={activeCategory.fileUpload.description}
-            onConfirm={(fileName) => {
+            onConfirm={async (fileName, file) => {
               updateEntry(target.categoryKey, target.index, '_fileName', fileName)
               updateEntry(target.categoryKey, target.index, '_status', 'pending')
-              setTimeout(() => {
+              
+              const entry = entries[target.categoryKey][target.index]
+              try {
+                if (target.categoryKey === 'gpa') {
+                  await submitGpa({
+                    gpa: parseFloat(entry.gpaAverage) || 0,
+                    scoreType: '4.5',
+                    percentile: parseFloat(entry.convertedScore) || 0,
+                    majorAverage: parseFloat(entry.majorGpaAverage) || 0,
+                  }, file)
+                } else if (target.categoryKey === 'language') {
+                  await submitLanguage({
+                    testName: entry.test || '',
+                    score: entry.score || '',
+                    date: entry.date || '',
+                  }, file)
+                } else if (target.categoryKey === 'certificate') {
+                  await submitCertificate({
+                    certName: entry.name || '',
+                    certNo: '',
+                    issueDate: entry.date || '',
+                  }, file)
+                }
                 updateEntry(target.categoryKey, target.index, '_status', 'verified')
-              }, 2500)
+              } catch (e) {
+                console.error('File upload failed', e)
+                updateEntry(target.categoryKey, target.index, '_status', 'rejected')
+                alert('파일 업로드 중 오류가 발생했습니다.')
+              }
             }}
           />
         )

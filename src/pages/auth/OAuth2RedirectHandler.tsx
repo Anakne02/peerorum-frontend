@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { useSpec } from '../../context/SpecContext'
 import { fetchMyProfile } from '../../api/profile'
 
 
@@ -8,6 +9,7 @@ export default function OAuth2RedirectHandler() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { login } = useAuth()
+  const { loadFromProfile } = useSpec()
 
 
   const handledRef = useRef(false)
@@ -62,6 +64,7 @@ export default function OAuth2RedirectHandler() {
             role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
             hasSpec: true,
           })
+          loadFromProfile(profile)
         } catch (e) {
           console.error('Failed to fetch profile', e)
           login({
