@@ -149,7 +149,7 @@ export default function SignupPage() {
   const { login, isLoggedIn } = useAuth()
   const navigate = useNavigate()
 
-  const [step, setStep] = useState<Step>(isLoggedIn ? 'terms' : 'account')
+  const [step, setStep] = useState<Step>(() => localStorage.getItem('token') ? 'terms' : 'account')
   const [checked, setChecked] = useState<Record<string, boolean>>({
     age: false,
     service: false,
