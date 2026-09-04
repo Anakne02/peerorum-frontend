@@ -85,7 +85,7 @@ export default function CompareSpec2Page() {
     gpaPercentile: Math.round(((i + 1) / (profiles.length || 1)) * 100),
     lang: p.toeicScore > 0 ? 'TOEIC ' + p.toeicScore : '없음',
     certs: p.verificationCount + '개',
-    intern: '없음',
+    intern: p.internCount > 0 ? p.internCount + '회' : '없음',
     rank: i + 1,
   }))
 

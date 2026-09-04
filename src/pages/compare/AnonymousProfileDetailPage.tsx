@@ -41,6 +41,7 @@ export default function AnonymousProfileDetailPage() {
   const [activeTab, setActiveTab] = useState<'spec' | 'timeline'>('spec')
   const { studentId } = useParams<{ studentId: string }>()
   const [student, setStudent] = useState<ProfileDetailResponse | null>(null)
+  const [myProfile, setMyProfile] = useState<MyProfileData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -117,20 +118,24 @@ export default function AnonymousProfileDetailPage() {
     },
   ]
 
+  const myCertsCount = myProfile?.certificates?.length || 0;
+  const myActivityCount = myProfile?.activities?.length || 0;
+  const myInternCount = myProfile?.interns?.length || 0;
+  
   const COMPARE_ROWS = [
-    { label: '학점', mine: `${MY_SPEC.gpa} / 4.5`, theirs: `${student.gpa} / 4.5` },
-    { label: '어학', mine: MY_SPEC.lang, theirs: student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : '없음' },
+    { label: '학점', mine: myProfile ? `${myProfile.gpa} / 4.5` : '-', theirs: `${student.gpa} / 4.5` },
+    { label: '어학', mine: myProfile ? (myProfile.toeicScore > 0 ? `TOEIC ${myProfile.toeicScore}` : '없음') : '-', theirs: student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : '없음' },
     {
       label: '자격증',
-      mine: `${MY_SPEC.certsCount}개`,
+      mine: myProfile ? `${myCertsCount}개` : '-',
       theirs: `${student.certificates ? student.certificates.length : 0}개`,
     },
     {
       label: '활동',
-      mine: MY_SPEC.activity,
+      mine: myProfile ? (myActivityCount > 0 ? `대외활동 ${myActivityCount}회` : '없음') : '-',
       theirs: contestString === '-' ? activityString : `${activityString} · ${contestString}`,
     },
-    { label: '인턴', mine: MY_SPEC.intern, theirs: internString === '-' ? '경험 없음' : internString },
+    { label: '인턴', mine: myProfile ? (myInternCount > 0 ? `${myInternCount}회` : '경험 없음') : '-', theirs: internString === '-' ? '경험 없음' : internString },
   ]
 return (
     <div className="min-h-screen bg-gray-50">
