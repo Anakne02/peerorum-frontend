@@ -47,11 +47,11 @@ const RANK_PAGE_SIZE = 10
 export default function CompareSpec2Page() {
   const navigate = useNavigate()
 
-  const [pendingGrade, setPendingGrade] = useState(DEFAULT_GRADE)
+  const [pendingGrade, setPendingGrade] = useState<string | null>(DEFAULT_GRADE)
   const [pendingGpaRange, setPendingGpaRange] = useState(DEFAULT_GPA_RANGE)
   const [pendingJob, setPendingJob] = useState<string | null>(null)
   const [pendingCompareCriterion, setPendingCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
-  const [appliedGrade, setAppliedGrade] = useState(DEFAULT_GRADE)
+  const [appliedGrade, setAppliedGrade] = useState<string | null>(DEFAULT_GRADE)
   const [appliedJob, setAppliedJob] = useState<string | null>(null)
   const [myNickname, setMyNickname] = useState<string | null>(null)
   const [isReady, setIsReady] = useState(false)
@@ -95,7 +95,7 @@ export default function CompareSpec2Page() {
 
     
     if (!isReady) return;
-    const entranceYear = 2026 - parseInt(appliedGrade) + 1;
+    const entranceYear = appliedGrade ? 2026 - parseInt(appliedGrade) + 1 : undefined;
     fetchSearchPeers({ major: appliedMajor, entranceYear, desiredJob: appliedJob || undefined, minGpa, maxGpa })
       .then((res: CompareSpecProfile[]) => setProfiles(res || []))
       .catch((e: Error) => console.error(e))
@@ -237,7 +237,7 @@ export default function CompareSpec2Page() {
                   <button
                     key={grade}
                     type="button"
-                    onClick={() => setPendingGrade(grade)}
+                    onClick={() => setPendingGrade(grade === pendingGrade ? null : grade)}
                     className={`rounded-lg border py-2 text-[12px] font-medium transition-colors ${
                       grade === pendingGrade
                         ? 'border-blue-600 bg-blue-50 text-blue-600'
