@@ -43,7 +43,7 @@ export interface ComparisonStatisticsResponse {
 }
 
 export const fetchSearchPeers = async (
-  params?: { university?: string, major?: string, minGpa?: number, maxGpa?: number }
+  params?: { university?: string, major?: string, entranceYear?: number, desiredJob?: string, minGpa?: number, maxGpa?: number }
 ): Promise<CompareSpecProfile[]> => {
   const response = await api.get('/comparison/search', { params })
   return response.data.data

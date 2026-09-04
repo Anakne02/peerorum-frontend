@@ -16,6 +16,7 @@ import ProfileMenu from '../../components/layout/ProfileMenu'
 import RankBadge from '../../components/compare/RankBadge'
 import RankPagination from '../../components/compare/RankPagination'
 import { fetchSearchPeers, type CompareSpecProfile } from '../../api/compare'
+import { fetchMyProfile, type MyProfileData } from '../../api/profile'
 import { useEffect } from 'react'
 import { JOB_CATEGORIES } from '../../data/jobCategories'
 import { COLLEGES } from '../../data/departments'
@@ -51,6 +52,9 @@ export default function CompareSpec2Page() {
   const [pendingJob, setPendingJob] = useState<string | null>(null)
   const [pendingCompareCriterion, setPendingCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
   const [appliedGrade, setAppliedGrade] = useState(DEFAULT_GRADE)
+  const [appliedJob, setAppliedJob] = useState<string | null>(null)
+  const [myNickname, setMyNickname] = useState<string | null>(null)
+  const [isReady, setIsReady] = useState(false)
   const [appliedGpaRange, setAppliedGpaRange] = useState(DEFAULT_GPA_RANGE)
   const [appliedCompareCriterion, setAppliedCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
   const [page, setPage] = useState(1)
@@ -59,6 +63,25 @@ export default function CompareSpec2Page() {
   const [appliedMajor, setAppliedMajor] = useState('경영학부')
   const [profiles, setProfiles] = useState<CompareSpecProfile[]>([])
   
+
+  
+  useEffect(() => {
+    fetchMyProfile().then((myProfile) => {
+      const grade = Math.max(1, 2026 - myProfile.entranceYear + 1) + '학년';
+      setPendingMajor(myProfile.major);
+      setAppliedMajor(myProfile.major);
+      setPendingGrade(grade);
+      setAppliedGrade(grade);
+      setPendingJob(myProfile.desiredJob);
+      setAppliedJob(myProfile.desiredJob);
+      setMyNickname(myProfile.nickname);
+      setIsReady(true);
+    }).catch((e) => {
+      console.error(e);
+      alert('스펙 등록을 먼저 완료해주세요.');
+      navigate('/mypage/specs/register');
+    });
+  }, [navigate]);
 
   const gpaColumnLabel = appliedCompareCriterion === '전공 학점만' ? '전공 학점' : '평균 학점'
 
@@ -71,11 +94,13 @@ export default function CompareSpec2Page() {
     else { minGpa = 0.0; maxGpa = 2.49; }
 
     
-    fetchSearchPeers({ major: appliedMajor, minGpa, maxGpa })
+    if (!isReady) return;
+    const entranceYear = 2026 - parseInt(appliedGrade) + 1;
+    fetchSearchPeers({ major: appliedMajor, entranceYear, desiredJob: appliedJob || undefined, minGpa, maxGpa })
       .then((res: CompareSpecProfile[]) => setProfiles(res || []))
       .catch((e: Error) => console.error(e))
       
-  }, [appliedMajor, appliedGpaRange]);
+  }, [isReady, appliedMajor, appliedGpaRange, appliedGrade, appliedJob]);
 
   const filteredStudents = profiles.map((p, i) => ({
     anonId: p.virtualNickname || p.anonymousUuid.substring(0, 8),
@@ -83,6 +108,7 @@ export default function CompareSpec2Page() {
     department: p.major,
     gpa: p.gpa.toFixed(2),
     gpaPercentile: Math.round(((i + 1) / (profiles.length || 1)) * 100),
+    isMe: p.virtualNickname === myNickname,
     lang: p.toeicScore > 0 ? 'TOEIC ' + p.toeicScore : '없음',
     certs: p.verificationCount + '개',
     intern: p.internCount > 0 ? p.internCount + '회' : '없음',
@@ -101,6 +127,7 @@ export default function CompareSpec2Page() {
     setAppliedGpaRange(pendingGpaRange)
     setAppliedCompareCriterion(pendingCompareCriterion)
     setAppliedMajor(pendingMajor)
+    setAppliedJob(pendingJob)
     setPage(1)
   }
 
@@ -351,7 +378,7 @@ export default function CompareSpec2Page() {
                   <tr
                     key={student.uuid}
                     onClick={() => navigate(`/compare/${encodeURIComponent(student.uuid)}`)}
-                    className="cursor-pointer border-b border-gray-50 last:border-none hover:bg-gray-50/70"
+                    className={`cursor-pointer border-b border-gray-50 last:border-none hover:bg-gray-50/70 ${student.isMe ? 'bg-blue-50/50' : ''}`}
                   >
                     <td className="px-4 py-3.5">
                       <RankBadge rank={student.rank} />
@@ -360,7 +387,10 @@ export default function CompareSpec2Page() {
                       <div className="flex items-center gap-2.5">
                         <PenguinMascot className="h-8 w-8" />
                         <div>
-                          <p className="text-[13px] font-semibold text-ink-900">{student.anonId}</p>
+                          <p className="text-[13px] font-semibold text-ink-900">
+                            {student.anonId}
+                            {student.isMe && <span className="ml-2 inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-800">내 스펙</span>}
+                          </p>
                           <p className="text-[11px] text-gray-400">{student.department}</p>
                         </div>
                       </div>
