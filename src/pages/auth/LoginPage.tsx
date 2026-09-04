@@ -2,22 +2,42 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../../layouts/AuthLayout'
 import { useAuth } from '../../context/AuthContext'
+import { loginApi } from '../../api/auth'
+import { useSearchParams } from 'react-router-dom'
 
-const ADMIN_EMAIL = 'admin@peeroreum.com'
 
 export default function LoginPage() {
+  const [searchParams] = useSearchParams()
+  const errorParam = searchParams.get('error')
+  const [password, setPassword] = useState('')
+  const [errorMsg, setErrorMsg] = useState(
+    errorParam === 'oauth_email_required' ? '소셜 로그인 중 이메일 제공을 동의해야 합니다.' :
+    errorParam ? '로그인에 실패했습니다.' : ''
+  )
+
   const { login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (email.trim().toLowerCase() === ADMIN_EMAIL) {
-      login({ name: '관리자', role: 'admin' })
-    } else {
-      login({ role: 'user' })
+    setErrorMsg('')
+    try {
+      const result = await loginApi(email, password)
+      localStorage.setItem('token', result.accessToken)
+      localStorage.setItem('uuid', result.uuid)
+      localStorage.setItem('role', result.role)
+      
+      login({ name: result.name, role: result.role === 'ROLE_ADMIN' ? 'admin' : 'user' })
+      if (result.role === 'ROLE_ADMIN') {
+        navigate('/admin')
+      } else {
+        navigate('/mypage/specs')
+      }
+    } catch (err: any) {
+      console.error(err)
+      setErrorMsg('이메일 또는 비밀번호가 틀립니다.')
     }
-    navigate('/compare')
   }
 
   return (
@@ -35,9 +55,12 @@ export default function LoginPage() {
           />
           <input
             type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="비밀번호를 입력해주세요"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
           />
+          {errorMsg && <p className="text-[13px] text-red-500">{errorMsg}</p>}
 
           <div className="flex items-center justify-between text-[13px]">
             <label className="flex items-center gap-1.5 text-gray-500">

@@ -19,8 +19,9 @@ import { JOB_CATEGORIES } from '../../data/jobCategories'
 import { COLLEGES } from '../../data/departments'
 import { useAuth } from '../../context/AuthContext'
 import { createMyProfile } from '../../api/profile'
+import { signupApi } from '../../api/auth'
 
-type Step = 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
+type Step = 'method' | 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
 
 const STEP_ORDER: Step[] = ['terms', 'basic', 'compare', 'nickname']
 
@@ -190,7 +191,7 @@ export default function SignupPage() {
 
   const stepIndex = STEP_ORDER.indexOf(step)
 
-  const handleAccountSubmit = (e: React.FormEvent) => {
+  const handleAccountSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password.length < 8) {
       setPasswordError('비밀번호는 8자 이상이어야 해요.')
@@ -201,7 +202,17 @@ export default function SignupPage() {
       return
     }
     setPasswordError('')
-    setStep('terms')
+    try {
+      const result = await signupApi(name, email, password)
+      localStorage.setItem('token', result.accessToken)
+      localStorage.setItem('uuid', result.uuid)
+      localStorage.setItem('role', result.role)
+      setStep('basic')
+    } catch (err: any) {
+      console.error(err)
+      const errorMsg = err.response?.data?.message || '회원가입에 실패했습니다.'
+      alert(errorMsg)
+    }
   }
 
   const fillRandomNickname = () => {
