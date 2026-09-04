@@ -43,7 +43,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const logout = () => setUser(null)
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem('token')
+    localStorage.removeItem('role')
+    localStorage.removeItem('uuid')
+  }
 
   const setHasSpec = (hasSpec: boolean) => {
     setUser((prev) => (prev ? { ...prev, hasSpec } : prev))
