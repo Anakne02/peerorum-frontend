@@ -69,3 +69,11 @@ export interface ProfileCreateData {
 export const createMyProfile = async (data: ProfileCreateData): Promise<void> => {
   await api.post('/profiles', data)
 }
+
+export const updateMyProfile = async (data: {
+  nickname?: string
+  desiredJob?: string
+  entranceYear?: number
+}): Promise<void> => {
+  await api.put('/profiles/me', data)
+}

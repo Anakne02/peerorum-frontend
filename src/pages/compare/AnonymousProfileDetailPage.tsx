@@ -17,7 +17,6 @@ import {
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import PenguinMascot from '../../components/ui/PenguinMascot'
-import { MY_SPEC } from '../../data/mockRankings'
 
 const GPA_BUCKETS = [
   { range: '3.0', height: 18, min: 0 },
@@ -46,9 +45,14 @@ export default function AnonymousProfileDetailPage() {
 
   useEffect(() => {
     if (studentId) {
-      getProfileDetail(studentId)
-        .then((data) => {
+      const decodedId = decodeURIComponent(studentId)
+      Promise.all([
+        getProfileDetail(decodedId),
+        fetchMyProfile().catch(() => null),
+      ])
+        .then(([data, my]) => {
           setStudent(data)
+          setMyProfile(my)
           setLoading(false)
         })
         .catch((err) => {

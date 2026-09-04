@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MyPageLayout from '../../layouts/MyPageLayout'
 import { useAuth } from '../../context/AuthContext'
+import { updateMyProfile } from '../../api/profile'
 
 const GRADE_OPTIONS = ['1학년', '2학년', '3학년', '4학년']
 
@@ -22,10 +23,28 @@ export default function PersonalInfoEditPage() {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    updateProfile(form)
-    navigate('/mypage/settings/account')
+    setIsSubmitting(true)
+    try {
+      // Calculate entranceYear from grade string e.g. '3학년' -> current year - 3 + 1
+      const gradeNum = parseInt(form.grade?.replace(/[^0-9]/g, '') || '4')
+      const entranceYear = new Date().getFullYear() - gradeNum + 1
+      await updateMyProfile({
+        nickname: form.nickname,
+        desiredJob: form.desiredJob,
+        entranceYear,
+      })
+      updateProfile(form)
+      navigate('/mypage/settings/account')
+    } catch (e) {
+      console.error('Failed to update profile', e)
+      alert('프로필 업데이트에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
