@@ -76,7 +76,8 @@ export default function CompareSpec2Page() {
   }, [appliedMajor, appliedGpaRange]);
 
   const filteredStudents = profiles.map((p, i) => ({
-    anonId: p.anonymousUuid,
+    anonId: p.virtualNickname || p.anonymousUuid.substring(0, 8),
+    uuid: p.anonymousUuid,
     department: p.major,
     gpa: p.gpa.toFixed(2),
     gpaPercentile: Math.round(((i + 1) / (profiles.length || 1)) * 100),
@@ -342,8 +343,8 @@ export default function CompareSpec2Page() {
               <tbody>
                 {pageStudents.map((student) => (
                   <tr
-                    key={student.anonId}
-                    onClick={() => navigate(`/compare/${encodeURIComponent(student.anonId)}`)}
+                    key={student.uuid}
+                    onClick={() => navigate(`/compare/${encodeURIComponent(student.uuid)}`)}
                     className="cursor-pointer border-b border-gray-50 last:border-none hover:bg-gray-50/70"
                   >
                     <td className="px-4 py-3.5">
