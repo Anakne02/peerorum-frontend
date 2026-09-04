@@ -1,114 +1,91 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import {
+  clearAuthenticationSession,
+  refreshAuthentication,
+  saveAuthenticationSession,
+} from '../../api/auth'
+import { fetchMyProfile } from '../../api/profile'
 import { useAuth } from '../../context/AuthContext'
 import { useSpec } from '../../context/SpecContext'
-import { fetchMyProfile } from '../../api/profile'
-
 
 export default function OAuth2RedirectHandler() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { login } = useAuth()
   const { loadFromProfile } = useSpec()
-
-
   const handledRef = useRef(false)
 
   useEffect(() => {
-    if (handledRef.current) {
-      return
-    }
-
+    if (handledRef.current) return
     handledRef.current = true
 
-    const error = searchParams.get('error')
-    if (error) {
-      let errorMsg = '소셜 로그인에 실패했습니다.'
-      if (error === 'account_exists_with_local') errorMsg = '이미 일반 회원가입으로 가입된 이메일입니다. 이메일로 로그인해주세요.'
-      else if (error === 'account_exists_with_kakao') errorMsg = '이미 카카오로 가입된 이메일입니다. 카카오로 로그인해주세요.'
-      else if (error === 'account_exists_with_google') errorMsg = '이미 구글로 가입된 이메일입니다. 구글로 로그인해주세요.'
-      else if (error === 'oauth_email_required') errorMsg = '소셜 로그인 중 이메일 제공을 동의해야 합니다.'
-      
-      alert(errorMsg)
-      navigate('/login', { replace: true })
-      return
-    }
+    const completeLogin = async () => {
+      const errorCode = searchParams.get('error')
+      if (errorCode) {
+        navigate(`/login?error=${encodeURIComponent(errorCode)}`, { replace: true })
+        return
+      }
 
-    const token = searchParams.get('token')
-    const role = searchParams.get('role')
-    const uuid = searchParams.get('uuid')
-    const rawName = searchParams.get('name')
-    const decodedName = rawName ? decodeURIComponent(rawName) : 'User'
+      const token = searchParams.get('token')
+      const role = searchParams.get('role')
+      const uuid = searchParams.get('uuid')
+      const redirectName = searchParams.get('name')?.trim() || ''
 
-    const normalizedRole =
-      role === 'ROLE_GUEST' ||
-      role === 'ROLE_USER' ||
-      role === 'ROLE_ADMIN'
-        ? role
-        : 'ROLE_USER'
+      if (!token) {
+        navigate('/login?error=oauth2_failed', { replace: true })
+        return
+      }
 
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
+      localStorage.setItem('token', token)
+      if (role) localStorage.setItem('role', role)
+      if (uuid) localStorage.setItem('uuid', uuid)
 
-    localStorage.setItem('token', token)
+      try {
+        const session = await refreshAuthentication()
+        saveAuthenticationSession(session)
+        const sessionName = session.name?.trim() || redirectName || '회원'
 
-    localStorage.setItem('role', normalizedRole)
+        if (session.role === 'ROLE_GUEST') {
+          login({ name: sessionName, role: 'user', hasSpec: false })
+          navigate('/signup?mode=onboarding', { replace: true })
+          return
+        }
 
-    if (uuid) {
-      localStorage.setItem('uuid', uuid)
-    }
-
-    const processLogin = async () => {
-      if (normalizedRole === 'ROLE_GUEST') {
-        login({
-          name: decodedName,
-          role: 'user',
-          hasSpec: false,
-        })
-        navigate('/signup', { replace: true })
-      } else {
+        let profile
         try {
-          const profile = await fetchMyProfile()
-          login({
-            name: profile.name,
-            nickname: profile.nickname,
-            school: profile.university,
-            department: profile.major,
-            desiredJob: profile.desiredJob,
-            role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
-            hasSpec: true,
-          })
+          profile = await fetchMyProfile()
           loadFromProfile(profile)
-        } catch (e) {
-          console.error('Failed to fetch profile', e)
-          login({
-            name: 'User',
-            role: normalizedRole === 'ROLE_ADMIN' ? 'admin' : 'user',
-            hasSpec: true,
-          })
+        } catch (profileError) {
+          console.error('Failed to fetch profile after OAuth2 login', profileError)
         }
 
-        if (normalizedRole === 'ROLE_ADMIN') {
-          navigate('/admin', { replace: true })
-        } else {
-          navigate('/mypage/specs', { replace: true })
-        }
+        login({
+          name: profile?.name || sessionName,
+          nickname: profile?.nickname || '',
+          school: profile?.university || '',
+          department: profile?.major || '',
+          desiredJob: profile?.desiredJob || '',
+          role: session.role === 'ROLE_ADMIN' ? 'admin' : 'user',
+          hasSpec: true,
+        })
+
+        navigate(session.role === 'ROLE_ADMIN' ? '/admin' : '/mypage/specs', {
+          replace: true,
+        })
+      } catch (error) {
+        console.error('Failed to complete OAuth2 login', error)
+        clearAuthenticationSession()
+        navigate('/login?error=oauth2_failed', { replace: true })
       }
     }
-    processLogin()
-  }, [
-    searchParams,
-    navigate,
-    login,
-  ])
+
+    void completeLogin()
+  }, [searchParams, navigate, login, loadFromProfile])
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="text-center text-gray-500">
-        로그인 처리 중입니다...
-      </div>
+      <div className="text-center text-gray-500">로그인 처리 중입니다...</div>
     </div>
   )
 }

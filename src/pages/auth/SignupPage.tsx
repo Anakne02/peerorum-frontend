@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ArrowLeft,
   ArrowRight,
@@ -19,9 +19,15 @@ import { JOB_CATEGORIES } from '../../data/jobCategories'
 import { COLLEGES } from '../../data/departments'
 import { useAuth } from '../../context/AuthContext'
 import { createMyProfile } from '../../api/profile'
-import { signupApi } from '../../api/auth'
+import {
+  getApiErrorMessage,
+  refreshAuthentication,
+  saveAuthenticationSession,
+  signupLocal,
+} from '../../api/auth'
 
 type Step = 'method' | 'account' | 'terms' | 'basic' | 'compare' | 'nickname' | 'complete'
+type SignupMethod = 'local' | 'oauth'
 
 const STEP_ORDER: Step[] = ['terms', 'basic', 'compare', 'nickname']
 
@@ -150,8 +156,15 @@ function StepHeader({
 export default function SignupPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isOnboarding =
+    searchParams.get('mode') === 'onboarding' &&
+    Boolean(localStorage.getItem('token'))
 
-  const [step, setStep] = useState<Step>(() => localStorage.getItem('token') ? 'terms' : 'account')
+  const [step, setStep] = useState<Step>(isOnboarding ? 'terms' : 'method')
+  const [signupMethod, setSignupMethod] = useState<SignupMethod | null>(
+    isOnboarding ? 'oauth' : null,
+  )
   const [checked, setChecked] = useState<Record<string, boolean>>({
     age: false,
     service: false,
@@ -166,6 +179,9 @@ export default function SignupPage() {
   const [password, setPassword] = useState('')
   const [passwordConfirm, setPasswordConfirm] = useState('')
   const [passwordError, setPasswordError] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isCompleting, setIsCompleting] = useState(false)
 
   const [school] = useState('단국대학교')
   const [department, setDepartment] = useState('')
@@ -191,8 +207,9 @@ export default function SignupPage() {
 
   const stepIndex = STEP_ORDER.indexOf(step)
 
-  const handleAccountSubmit = async (e: React.FormEvent) => {
+  const handleAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setErrorMessage('')
     if (password.length < 8) {
       setPasswordError('비밀번호는 8자 이상이어야 해요.')
       return
@@ -202,16 +219,49 @@ export default function SignupPage() {
       return
     }
     setPasswordError('')
-    try {
-      const result = await signupApi(name, email, password)
-      localStorage.setItem('token', result.accessToken)
-      localStorage.setItem('uuid', result.uuid)
-      localStorage.setItem('role', result.role)
+    setSignupMethod('local')
+    setStep('terms')
+  }
+
+  const handleTermsContinue = async () => {
+    if (signupMethod === 'oauth') {
       setStep('basic')
-    } catch (err: any) {
-      console.error(err)
-      const errorMsg = err.response?.data?.message || '회원가입에 실패했습니다.'
-      alert(errorMsg)
+      return
+    }
+
+    if (signupMethod !== 'local') {
+      setStep('method')
+      return
+    }
+
+    setErrorMessage('')
+    setIsSubmitting(true)
+
+    try {
+      const session = await signupLocal({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      })
+
+      saveAuthenticationSession(session)
+      login({
+        name: session.name,
+        email: email.trim(),
+        role: 'user',
+        hasSpec: false,
+      })
+      setStep('basic')
+    } catch (error) {
+      setErrorMessage(
+        getApiErrorMessage(
+          error,
+          '회원가입에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        ),
+      )
+      setStep('account')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -220,9 +270,12 @@ export default function SignupPage() {
     setNickname(pool[Math.floor(Math.random() * pool.length)])
   }
 
-  const finishSignup = async (destination: '/mypage/specs' | '/') => {
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setErrorMessage('')
+    setIsCompleting(true)
+
     try {
-      // Calculate entranceYear based on grade
       const gradeNum = parseInt(grade.replace(/[^0-9]/g, '')) || 4
       const currentYear = new Date().getFullYear()
       const entranceYear = currentYear - gradeNum + 1
@@ -234,12 +287,90 @@ export default function SignupPage() {
         desiredJob,
         nickname,
       })
-      login({ name, email, school, department, grade, desiredJob, nickname, hasSpec: false, role: 'user' })
-      navigate(destination)
-    } catch (e) {
-      console.error('Profile creation failed:', e)
-      alert('프로필 저장 중 오류가 발생했습니다.')
+
+      const session = await refreshAuthentication()
+      saveAuthenticationSession(session)
+      login({
+        name: session.name,
+        email,
+        school,
+        department,
+        grade,
+        desiredJob,
+        nickname,
+        hasSpec: false,
+        role: session.role === 'ROLE_ADMIN' ? 'admin' : 'user',
+      })
+      setStep('complete')
+    } catch (error) {
+      setErrorMessage(
+        getApiErrorMessage(
+          error,
+          '프로필 생성에 실패했습니다. 잠시 후 다시 시도해주세요.',
+        ),
+      )
+    } finally {
+      setIsCompleting(false)
     }
+  }
+
+  const finishSignup = (destination: '/mypage/specs' | '/') => {
+    navigate(destination)
+  }
+
+  if (step === 'method') {
+    return (
+      <AuthLayout>
+        <div>
+          <h1 className="text-[22px] font-bold text-ink-900">회원가입</h1>
+          <p className="mt-1.5 text-[13.5px] text-gray-500">
+            가입할 방법을 선택해주세요.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setSignupMethod('local')
+                setStep('account')
+              }}
+              className="flex w-full items-center justify-center rounded-xl bg-blue-600 py-3 text-[14px] font-semibold text-white hover:bg-blue-700"
+            >
+              이메일로 회원가입
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.href = '/oauth2/authorization/google'}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-[14px] font-medium text-ink-900 hover:bg-gray-50"
+            >
+              <span className="text-[15px] font-bold text-[#4285F4]">G</span>
+              Google로 회원가입
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.href = '/oauth2/authorization/kakao'}
+              className="flex w-full items-center justify-center rounded-xl border border-gray-200 bg-[#FEE500] py-3 text-[14px] font-medium text-[#191600] hover:brightness-95"
+            >
+              카카오로 회원가입
+            </button>
+            <button
+              type="button"
+              onClick={() => alert('Apple 회원가입은 현재 준비 중입니다.')}
+              className="flex w-full items-center justify-center rounded-xl border border-gray-200 py-3 text-[14px] font-medium text-gray-400"
+            >
+              Apple로 회원가입
+            </button>
+          </div>
+
+          <p className="mt-6 text-center text-[13px] text-gray-500">
+            이미 계정이 있으신가요?{' '}
+            <Link to="/login" className="font-semibold text-blue-600 hover:underline">
+              로그인
+            </Link>
+          </p>
+        </div>
+      </AuthLayout>
+    )
   }
 
   if (step === 'account') {
@@ -288,6 +419,14 @@ export default function SignupPage() {
             {passwordError && (
               <p className="text-[11.5px] font-medium text-rose-500">{passwordError}</p>
             )}
+            {errorMessage && (
+              <p
+                role="alert"
+                className="rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-600"
+              >
+                {errorMessage}
+              </p>
+            )}
 
             <button
               type="submit"
@@ -297,36 +436,16 @@ export default function SignupPage() {
             </button>
           </form>
 
-          <div className="my-6 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-100" />
-            <span className="text-[12px] text-gray-400">또는</span>
-            <div className="h-px flex-1 bg-gray-100" />
-          </div>
-
-          <div className="flex flex-col gap-2.5">
-            <button
-              type="button"
-              onClick={() => window.location.href = '/oauth2/authorization/google'}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-[14px] font-medium text-ink-900 hover:bg-gray-50"
-            >
-              <span className="text-[15px] font-bold text-[#4285F4]">G</span>
-              Google로 가입하기
-            </button>
-            <button
-              type="button"
-              onClick={() => window.location.href = '/oauth2/authorization/kakao'}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-[#FEE500] py-3 text-[14px] font-medium text-[#191600] hover:brightness-95"
-            >
-              카카오로 가입하기
-            </button>
-            <button
-              type="button"
-              onClick={() => setStep('terms')}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-[14px] font-medium text-ink-900 hover:bg-gray-50"
-            >
-              Apple로 가입하기
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setErrorMessage('')
+              setStep('method')
+            }}
+            className="mt-4 w-full text-center text-[13px] font-medium text-gray-500 hover:text-blue-600"
+          >
+            다른 가입 방식 선택하기
+          </button>
 
           <p className="mt-6 text-center text-[13px] text-gray-500">
             이미 계정이 있으신가요?{' '}
@@ -404,11 +523,11 @@ export default function SignupPage() {
 
             <button
               type="button"
-              disabled={!allRequiredChecked}
-              onClick={() => setStep('basic')}
+              disabled={!allRequiredChecked || isSubmitting}
+              onClick={() => void handleTermsContinue()}
               className="mt-6 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-40"
             >
-              동의하고 계속하기
+              {isSubmitting ? '가입 처리 중...' : '동의하고 계속하기'}
             </button>
           </div>
         )}
@@ -556,10 +675,7 @@ export default function SignupPage() {
 
             <form
               className="mt-6 flex flex-col gap-4"
-              onSubmit={(e) => {
-                e.preventDefault()
-                setStep('complete')
-              }}
+              onSubmit={handleProfileSubmit}
             >
               <div>
                 <label className="mb-1.5 block text-[13px] font-medium text-ink-900">
@@ -602,11 +718,21 @@ export default function SignupPage() {
                 </div>
               </div>
 
+              {errorMessage && (
+                <p
+                  role="alert"
+                  className="rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-600"
+                >
+                  {errorMessage}
+                </p>
+              )}
+
               <button
                 type="submit"
+                disabled={isCompleting}
                 className="mt-1 w-full rounded-xl bg-blue-600 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700"
               >
-                다음 →
+                {isCompleting ? '프로필 저장 중...' : '다음 →'}
               </button>
             </form>
           </div>

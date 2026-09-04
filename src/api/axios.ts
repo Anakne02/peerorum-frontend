@@ -5,88 +5,70 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-// 모든 API 요청에 Access Token 첨부
 api.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem('token')
 
   if (accessToken) {
-    config.headers.Authorization =
-      `Bearer ${accessToken}`
+    config.headers.Authorization = `Bearer ${accessToken}`
   }
 
   return config
 })
 
-// Response Interceptor: 만료된 Access Token 재발급
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
+    const requestUrl = originalRequest?.url || ''
+    const skipsRefresh = [
+      '/auth/login',
+      '/auth/signup',
+      '/auth/refresh',
+    ].some((path) => requestUrl.includes(path))
 
     if (
       error.response?.status === 401 &&
       originalRequest &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !skipsRefresh
     ) {
       originalRequest._retry = true
 
       try {
+        const baseURL = (api.defaults.baseURL || '/api').replace(/\/$/, '')
         const refreshResponse = await axios.post(
-          import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/auth/refresh` : '/api/auth/refresh',
+          `${baseURL}/auth/refresh`,
           null,
-          {
-            withCredentials: true,
-          },
+          { withCredentials: true },
         )
+        const session = refreshResponse.data?.data
 
-        const newAccessToken =
-          refreshResponse.data?.data?.accessToken
-
-        const uuid =
-          refreshResponse.data?.data?.uuid
-
-        if (!newAccessToken) {
+        if (!session?.accessToken) {
           throw new Error('새 Access Token이 없습니다.')
         }
 
-        localStorage.setItem(
-          'token',
-          newAccessToken,
-        )
-
-        if (uuid) {
-          localStorage.setItem('uuid', uuid)
-        }
+        localStorage.setItem('token', session.accessToken)
+        if (session.uuid) localStorage.setItem('uuid', session.uuid)
+        if (session.role) localStorage.setItem('role', session.role)
+        if (session.name) localStorage.setItem('name', session.name)
 
         originalRequest.headers.Authorization =
-          `Bearer ${newAccessToken}`
+          `Bearer ${session.accessToken}`
 
         return api(originalRequest)
       } catch (refreshError) {
         localStorage.removeItem('token')
         localStorage.removeItem('role')
         localStorage.removeItem('uuid')
-
+        localStorage.removeItem('name')
+        localStorage.removeItem('nickname')
+        localStorage.removeItem('hasSpec')
+        localStorage.removeItem('uiRole')
         window.location.href = '/login'
-
         return Promise.reject(refreshError)
       }
     }
 
     return Promise.reject(error)
   },
-)
-
-// Response Interceptor: Handle 401 Unauthorized
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('role')
-      localStorage.removeItem('uuid')
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  }
 )
