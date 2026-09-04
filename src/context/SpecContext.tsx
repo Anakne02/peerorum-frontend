@@ -35,9 +35,25 @@ export function SpecProvider({ children }: { children: ReactNode }) {
   const resetEntries = () => setEntries(EMPTY_ENTRIES)
 
   const loadFromProfile = (profile: MyProfileData) => {
+    const languageEntries = [];
+    if (profile.toeicScore) {
+      languageEntries.push({ test: 'TOEIC', score: String(profile.toeicScore), _status: 'verified' });
+    }
+    if (profile.opicGrade) {
+      languageEntries.push({ test: 'OPIc', score: profile.opicGrade, _status: 'verified' });
+    }
+    if (profile.toeicSpeakingGrade) {
+      languageEntries.push({ test: 'TOEIC Speaking', score: profile.toeicSpeakingGrade, _status: 'verified' });
+    }
+
     const newEntries: SpecEntries = {
-      gpa: profile.gpa ? [{ gpaAverage: String(profile.gpa) }] : [],
-      language: [],
+      gpa: profile.gpa ? [{ 
+        gpaAverage: String(profile.gpa),
+        majorGpaAverage: profile.majorGpa ? String(profile.majorGpa) : undefined,
+        convertedScore: profile.convertedScore ? String(profile.convertedScore) : undefined,
+        _status: 'verified'
+      }] : [],
+      language: languageEntries as any,
       certificate: profile.certificates.map(c => ({
         name: c.certName,
         issuer: 'Q-Net (Mock)',

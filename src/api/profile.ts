@@ -41,6 +41,8 @@ export interface MyProfileData {
   major: string
   entranceYear: number
   gpa: number
+  majorGpa?: number
+  convertedScore?: number
   toeicScore: number
   opicGrade: string
   toeicSpeakingGrade: string
