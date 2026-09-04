@@ -223,11 +223,24 @@ export default function SpecEditPage() {
   const navigate = useNavigate()
   const { setHasSpec } = useAuth()
   const { entries: savedEntries, loadFromProfile } = useSpec()
-  const [entries, setEntries] = useState<Record<string, Entry[]>>(savedEntries)
+  const [entries, setEntries] = useState<Record<string, Entry[]>>(() => {
+    const initialized = { ...savedEntries };
+    if (initialized.gpa && initialized.gpa.length > 0 && !initialized.gpa[0].grade) {
+      initialized.gpa[0] = { ...initialized.gpa[0], grade: user?.grade || '4학년' };
+    }
+    return initialized;
+  })
   const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
 
+  const { user } = useAuth()
   const addEntry = (categoryKey: string) => {
-    setEntries((prev) => ({ ...prev, [categoryKey]: [...prev[categoryKey], {}] }))
+    setEntries((prev) => ({ 
+      ...prev, 
+      [categoryKey]: [
+        ...prev[categoryKey], 
+        categoryKey === 'gpa' ? { grade: user?.grade || '4학년' } : {}
+      ] 
+    }))
   }
 
   const removeEntry = (categoryKey: string, index: number) => {
