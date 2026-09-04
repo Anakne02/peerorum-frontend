@@ -17,16 +17,20 @@ export default function OAuth2RedirectHandler() {
   const handledRef = useRef(false)
 
   useEffect(() => {
-    if (handledRef.current) {
-      return
-    }
-
+    if (handledRef.current) return
     handledRef.current = true
 
     const completeLogin = async () => {
+      const errorCode = searchParams.get('error')
+      if (errorCode) {
+        navigate(`/login?error=${encodeURIComponent(errorCode)}`, { replace: true })
+        return
+      }
+
       const token = searchParams.get('token')
       const role = searchParams.get('role')
       const uuid = searchParams.get('uuid')
+      const redirectName = searchParams.get('name')?.trim() || ''
 
       if (!token) {
         navigate('/login?error=oauth2_failed', { replace: true })
@@ -40,13 +44,10 @@ export default function OAuth2RedirectHandler() {
       try {
         const session = await refreshAuthentication()
         saveAuthenticationSession(session)
+        const sessionName = session.name?.trim() || redirectName || '회원'
 
         if (session.role === 'ROLE_GUEST') {
-          login({
-            name: session.name,
-            role: 'user',
-            hasSpec: false,
-          })
+          login({ name: sessionName, role: 'user', hasSpec: false })
           navigate('/signup?mode=onboarding', { replace: true })
           return
         }
@@ -60,7 +61,7 @@ export default function OAuth2RedirectHandler() {
         }
 
         login({
-          name: profile?.name || session.name,
+          name: profile?.name || sessionName,
           nickname: profile?.nickname || '',
           school: profile?.university || '',
           department: profile?.major || '',
@@ -69,10 +70,9 @@ export default function OAuth2RedirectHandler() {
           hasSpec: true,
         })
 
-        navigate(
-          session.role === 'ROLE_ADMIN' ? '/admin' : '/mypage/specs',
-          { replace: true },
-        )
+        navigate(session.role === 'ROLE_ADMIN' ? '/admin' : '/mypage/specs', {
+          replace: true,
+        })
       } catch (error) {
         console.error('Failed to complete OAuth2 login', error)
         clearAuthenticationSession()
@@ -85,9 +85,7 @@ export default function OAuth2RedirectHandler() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="text-center text-gray-500">
-        로그인 처리 중입니다...
-      </div>
+      <div className="text-center text-gray-500">로그인 처리 중입니다...</div>
     </div>
   )
 }

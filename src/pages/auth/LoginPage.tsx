@@ -116,7 +116,6 @@ export default function LoginPage() {
             placeholder="비밀번호를 입력해주세요"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-[14px] outline-none placeholder:text-gray-400 focus:border-blue-500"
           />
-
           <div className="flex items-center justify-between text-[13px]">
             <label className="flex items-center gap-1.5 text-gray-500">
               <input type="checkbox" className="h-3.5 w-3.5 rounded border-gray-300" />

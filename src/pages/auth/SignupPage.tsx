@@ -219,6 +219,7 @@ export default function SignupPage() {
       return
     }
     setPasswordError('')
+    setSignupMethod('local')
     setStep('terms')
   }
 

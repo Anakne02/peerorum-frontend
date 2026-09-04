@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getProfileDetail } from '../../api/comparison'
+import type { ProfileDetailResponse } from '../../api/comparison'
 import { Link, useParams } from 'react-router-dom'
 import {
   Award,
@@ -15,7 +17,7 @@ import {
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import PenguinMascot from '../../components/ui/PenguinMascot'
-import { MY_SPEC, RANKED_STUDENTS } from '../../data/mockRankings'
+import { MY_SPEC } from '../../data/mockRankings'
 
 const GPA_BUCKETS = [
   { range: '3.0', height: 18, min: 0 },
@@ -38,58 +40,99 @@ function activeGpaBucketIndex(gpa: number) {
 export default function AnonymousProfileDetailPage() {
   const [activeTab, setActiveTab] = useState<'spec' | 'timeline'>('spec')
   const { studentId } = useParams<{ studentId: string }>()
+  const [student, setStudent] = useState<ProfileDetailResponse | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  const student =
-    RANKED_STUDENTS.find((s) => s.anonId === decodeURIComponent(studentId ?? '')) ??
-    RANKED_STUDENTS[0]
+  useEffect(() => {
+    if (studentId) {
+      getProfileDetail(studentId)
+        .then((data) => {
+          setStudent(data)
+          setLoading(false)
+        })
+        .catch((err) => {
+          console.error(err)
+          setLoading(false)
+        })
+    }
+  }, [studentId])
 
-  const activeGpaIndex = activeGpaBucketIndex(parseFloat(student.gpa))
+  if (loading) {
+    return <div className="flex min-h-screen items-center justify-center bg-gray-50">로딩 중...</div>
+  }
+
+  if (!student) {
+    return <div className="flex min-h-screen items-center justify-center bg-gray-50">사용자를 찾을 수 없습니다.</div>
+  }
+
+  const activeGpaIndex = activeGpaBucketIndex(student.gpa)
+  
+  // Calculate synthetic values if they don't exist in ProfileDetailResponse
+  // Since we don't have percentiles from backend, we will use mock-like percentages for now, 
+  // or you could calculate them based on actual logic later.
+  const gpaPercentile = 5; 
+  const langPercentile = 10;
+  const certsPercentile = 15;
+  const activityPercentile = 20;
+  const internPercentile = 25;
+  const overallPercentile = 7;
+
+  const activityString = student.activities && student.activities.length > 0 
+    ? `대외활동 ${student.activities.length}회` 
+    : '-';
+    
+  const contestString = student.awards && student.awards.length > 0
+    ? `공모전 ${student.awards.length}회`
+    : '-';
+    
+  const internString = student.interns && student.interns.length > 0
+    ? `인턴 ${student.interns.length}회`
+    : '-';
 
   const STAT_ROW = [
     {
       icon: GraduationCap,
       label: '학점 (4.5 만점)',
       value: `${student.gpa} / 4.5`,
-      percentile: `상위 ${student.gpaPercentile}%`,
+      percentile: `상위 ${gpaPercentile}%`,
     },
-    { icon: Globe2, label: '어학', value: student.lang, percentile: `상위 ${student.langPercentile}%` },
+    { icon: Globe2, label: '어학', value: student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : '없음', percentile: `상위 ${langPercentile}%` },
     {
       icon: Award,
       label: '자격증',
-      value: `${student.detail.certList.length}개`,
-      percentile: `상위 ${student.certsPercentile}%`,
+      value: `${student.certificates ? student.certificates.length : 0}개`,
+      percentile: `상위 ${certsPercentile}%`,
     },
     {
       icon: Briefcase,
       label: '활동',
-      value: student.contest === '-' ? student.activity : `${student.activity} · ${student.contest}`,
-      percentile: `상위 ${student.detail.activityPercentile}%`,
+      value: contestString === '-' ? activityString : `${activityString} · ${contestString}`,
+      percentile: `상위 ${activityPercentile}%`,
     },
     {
       icon: Users,
       label: '인턴',
-      value: student.intern === '-' ? '경험 없음' : `인턴 ${student.intern}`,
-      percentile: `상위 ${student.detail.internPercentile}%`,
+      value: internString === '-' ? '경험 없음' : internString,
+      percentile: `상위 ${internPercentile}%`,
     },
   ]
 
   const COMPARE_ROWS = [
     { label: '학점', mine: `${MY_SPEC.gpa} / 4.5`, theirs: `${student.gpa} / 4.5` },
-    { label: '어학', mine: MY_SPEC.lang, theirs: student.lang },
+    { label: '어학', mine: MY_SPEC.lang, theirs: student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : '없음' },
     {
       label: '자격증',
       mine: `${MY_SPEC.certsCount}개`,
-      theirs: `${student.detail.certList.length}개`,
+      theirs: `${student.certificates ? student.certificates.length : 0}개`,
     },
     {
       label: '활동',
       mine: MY_SPEC.activity,
-      theirs: student.contest === '-' ? student.activity : `${student.activity} · ${student.contest}`,
+      theirs: contestString === '-' ? activityString : `${activityString} · ${contestString}`,
     },
-    { label: '인턴', mine: MY_SPEC.intern, theirs: student.intern === '-' ? '경험 없음' : student.intern },
+    { label: '인턴', mine: MY_SPEC.intern, theirs: internString === '-' ? '경험 없음' : internString },
   ]
-
-  return (
+return (
     <div className="min-h-screen bg-gray-50">
       <Header />
 
@@ -107,13 +150,13 @@ export default function AnonymousProfileDetailPage() {
             <PenguinMascot className="h-14 w-14" />
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[17px] font-bold text-ink-900">{student.anonId}</span>
+                <span className="text-[17px] font-bold text-ink-900">{student.virtualNickname}</span>
                 <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600">
-                  상위 {student.detail.overallPercentile}%
+                  상위 {overallPercentile}%
                 </span>
               </div>
               <p className="mt-0.5 text-[13px] text-gray-500">
-                {student.department} · {student.detail.desiredJob} 희망
+                {student.major} · {student.desiredJob} 희망
               </p>
               <p className="mt-1 flex items-center gap-1 text-[11.5px] text-gray-400">
                 <ShieldCheck className="h-3.5 w-3.5 text-blue-500" />
@@ -177,22 +220,22 @@ export default function AnonymousProfileDetailPage() {
                   <div className="mt-3 flex items-baseline justify-between">
                     <span className="text-[20px] font-bold text-ink-900">{student.gpa} / 4.5</span>
                     <span className="text-[12px] font-semibold text-blue-600">
-                      상위 {student.gpaPercentile}%
+                      상위 {gpaPercentile}%
                     </span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
                     <div
                       className="h-full rounded-full bg-blue-600"
-                      style={{ width: `${100 - student.gpaPercentile}%` }}
+                      style={{ width: `${100 - gpaPercentile}%` }}
                     />
                   </div>
                   <p className="mt-1 text-[11.5px] text-gray-400">
-                    전공 평균 {student.detail.majorAvgGpa} / 4.5
+                    전공 평균 제공 안됨
                   </p>
 
                   <div className="mt-5 rounded-xl bg-gray-50 p-4">
                     <p className="mb-3 text-[12.5px] font-semibold text-gray-500">
-                      학점 분포 ({student.department})
+                      학점 분포 ({student.major})
                     </p>
                     <div className="flex h-24 items-end gap-2">
                       {GPA_BUCKETS.map((bar, index) => (
@@ -206,7 +249,7 @@ export default function AnonymousProfileDetailPage() {
                           />
                           {index === activeGpaIndex && (
                             <span className="rounded bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                              상위 {student.gpaPercentile}%
+                              상위 {gpaPercentile}%
                             </span>
                           )}
                         </div>
@@ -230,15 +273,15 @@ export default function AnonymousProfileDetailPage() {
                   </div>
                   <div className="mt-4">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-[18px] font-bold text-ink-900">{student.lang}</span>
+                      <span className="text-[18px] font-bold text-ink-900">{student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : "없음"}</span>
                       <span className="text-[12px] font-semibold text-blue-600">
-                        상위 {student.langPercentile}%
+                        상위 {langPercentile}%
                       </span>
                     </div>
                     <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
                       <div
                         className="h-full rounded-full bg-blue-600"
-                        style={{ width: `${100 - student.langPercentile}%` }}
+                        style={{ width: `${100 - langPercentile}%` }}
                       />
                     </div>
                   </div>
@@ -253,16 +296,16 @@ export default function AnonymousProfileDetailPage() {
                       <h3 className="text-[14.5px] font-bold text-ink-900">자격증</h3>
                     </div>
                     <span className="text-[12.5px] text-gray-400">
-                      총 {student.detail.certList.length}개
+                      총 {student.certificates ? student.certificates.length : 0}개
                     </span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {student.detail.certList.map((cert) => (
+                    {student.certificates && student.certificates.map((cert, idx) => (
                       <span
-                        key={cert}
+                        key={idx}
                         className="rounded-full bg-gray-100 px-3 py-1.5 text-[12.5px] font-medium text-ink-900"
                       >
-                        {cert}
+                        {cert.certName}
                       </span>
                     ))}
                   </div>
@@ -278,12 +321,12 @@ export default function AnonymousProfileDetailPage() {
                   <div className="mt-3 grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-[12.5px] text-gray-400">대외활동</p>
-                      <p className="text-[13.5px] font-semibold text-ink-900">{student.activity}</p>
+                      <p className="text-[13.5px] font-semibold text-ink-900">{activityString}</p>
                     </div>
                     <div>
                       <p className="text-[12.5px] text-gray-400">공모전</p>
                       <p className="text-[13.5px] font-semibold text-ink-900">
-                        {student.contest === '-' ? '참여 이력 없음' : `${student.contest} 수상`}
+                        {contestString === "-" ? "참여 이력 없음" : `${contestString} 수상`}
                       </p>
                     </div>
                   </div>
@@ -301,10 +344,10 @@ export default function AnonymousProfileDetailPage() {
                   </div>
                   <div className="mt-3">
                     <p className="text-[13.5px] font-semibold text-ink-900">
-                      {student.intern === '-' ? '인턴 경험 없음' : `인턴 경험 ${student.intern}`}
+                      {internString === "-" ? "인턴 경험 없음" : `인턴 경험 ${internString}`}
                     </p>
                     <p className="text-[12.5px] text-gray-400">
-                      {student.detail.internDetail ?? '등록된 인턴 이력이 없어요.'}
+                      {student.interns && student.interns.length > 0 ? student.interns[0].company : "등록된 인턴 이력이 없어요."}
                     </p>
                   </div>
                 </div>
@@ -337,7 +380,7 @@ export default function AnonymousProfileDetailPage() {
               <div className="mt-3 grid grid-cols-[1fr_1fr_1fr] gap-2 text-[11px] font-semibold text-gray-400">
                 <span />
                 <span className="text-center">나</span>
-                <span className="text-center text-blue-600">{student.anonId}</span>
+                <span className="text-center text-blue-600">{student.virtualNickname}</span>
               </div>
               <div className="flex flex-col">
                 {COMPARE_ROWS.map((row) => (

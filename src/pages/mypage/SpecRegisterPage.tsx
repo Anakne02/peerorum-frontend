@@ -612,27 +612,36 @@ export default function SpecRegisterPage() {
               
               const entry = entries[target.categoryKey][target.index]
               try {
+                let result
                 if (target.categoryKey === 'gpa') {
-                  await submitGpa({
+                  result = await submitGpa({
                     gpa: parseFloat(entry.gpaAverage) || 0,
                     scoreType: '4.5',
                     percentile: parseFloat(entry.convertedScore) || 0,
                     majorAverage: parseFloat(entry.majorGpaAverage) || 0,
                   }, file)
                 } else if (target.categoryKey === 'language') {
-                  await submitLanguage({
+                  result = await submitLanguage({
                     testName: entry.test || '',
                     score: entry.score || '',
                     date: entry.date || '',
                   }, file)
                 } else if (target.categoryKey === 'certificate') {
-                  await submitCertificate({
+                  result = await submitCertificate({
                     certName: entry.name || '',
-                    certNo: '', // Not strictly needed
+                    certNo: '',
                     issueDate: entry.date || '',
                   }, file)
                 }
-                updateEntry(target.categoryKey, target.index, '_status', 'verified')
+                
+                const statusStr = result?.data?.status
+                if (statusStr === 'VERIFIED') {
+                  updateEntry(target.categoryKey, target.index, '_status', 'verified')
+                  alert('성공적으로 인증되었습니다!')
+                } else {
+                  updateEntry(target.categoryKey, target.index, '_status', 'rejected')
+                  alert('인증에 실패했습니다. 사진이나 입력값을 다시 확인해주세요.')
+                }
               } catch (e) {
                 console.error('File upload failed', e)
                 updateEntry(target.categoryKey, target.index, '_status', 'rejected')
