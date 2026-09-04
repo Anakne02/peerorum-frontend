@@ -190,7 +190,7 @@ export default function CompareSpec2Page() {
                   className="w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 text-[13px] text-ink-900 outline-none focus:border-blue-500"
                 >
                   {COLLEGES.map((college) => (
-                    <optgroup key={college.name} label={college.name}>
+                    <optgroup key={college.college} label={college.college}>
                       {college.departments.map((department) => (
                         <option key={department} value={department}>{department}</option>
                       ))}
