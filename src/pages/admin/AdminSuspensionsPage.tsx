@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout'
 import { fetchAdminSuspensions, type AdminSuspensionData } from '../../api/admin'
 

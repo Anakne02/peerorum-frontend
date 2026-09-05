@@ -289,15 +289,6 @@ return (
                   <div className="mt-4">
                     <div className="flex items-baseline justify-between">
                       <span className="text-[18px] font-bold text-ink-900">{student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : "없음"}</span>
-                      <span className="text-[12px] font-semibold text-blue-600">
-                        상위 {langPercentile}%
-                      </span>
-                    </div>
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-100">
-                      <div
-                        className="h-full rounded-full bg-blue-600"
-                        style={{ width: `${100 - langPercentile}%` }}
-                      />
                     </div>
                   </div>
                 </div>

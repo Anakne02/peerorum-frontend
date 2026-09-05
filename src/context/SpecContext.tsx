@@ -49,10 +49,10 @@ export function SpecProvider({ children }: { children: ReactNode }) {
     const newEntries: SpecEntries = {
       gpa: profile.gpa ? [{ 
         gpaAverage: String(profile.gpa),
-        majorGpaAverage: profile.majorGpa ? String(profile.majorGpa) : undefined,
-        convertedScore: profile.convertedScore ? String(profile.convertedScore) : undefined,
+        ...(profile.majorGpa ? { majorGpaAverage: String(profile.majorGpa) } : {}),
+        ...(profile.convertedScore ? { convertedScore: String(profile.convertedScore) } : {}),
         _status: 'verified'
-      }] : [],
+      } as SpecEntry] : [],
       language: languageEntries as any,
       certificate: profile.certificates.map(c => ({
         name: c.certName,

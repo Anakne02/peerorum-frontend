@@ -18,8 +18,17 @@ export default function AdminDashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const genderSegments = data?.genderDistribution ?? []
-  const totalGender = genderSegments.reduce((sum, item) => sum + item.value, 0)
+  const rawGenderSegments = data?.genderDistribution ?? []
+  const totalGender = rawGenderSegments.reduce((sum, item) => sum + item.value, 0)
+  const strokeClasses = ['stroke-blue-500', 'stroke-pink-400', 'stroke-gray-300']
+  const dotClasses = ['bg-blue-500', 'bg-pink-400', 'bg-gray-300']
+  const genderSegments = rawGenderSegments.map((item, i) => ({
+    label: item.name,
+    value: item.value,
+    percent: totalGender > 0 ? Math.round(item.value / totalGender * 100) : 0,
+    strokeClass: strokeClasses[i] ?? 'stroke-gray-300',
+    dotClass: dotClasses[i] ?? 'bg-gray-300',
+  }))
   const signupTrend = data?.signupTrend ?? []
   const recentSignups = data?.recentSignups ?? []
 

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { verifyPassword } from '../../api/auth'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Bell, ChevronRight, Lock, UserPen } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
@@ -9,15 +8,32 @@ import { useAuth } from '../../context/AuthContext'
 function PasswordGate({ onVerified }: { onVerified: () => void }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isVerifying, setIsVerifying] = useState(false)
+  const { user } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password.trim().length === 0) {
       setError('비밀번호를 입력해주세요.')
       return
     }
     setError('')
-    onVerified()
+    // 소셜 로그인 사용자는 비밀번호 검증 없이 바로 진입
+    const provider = (user as any)?.provider
+    if (provider && provider !== 'LOCAL') {
+      onVerified()
+      return
+    }
+    setIsVerifying(true)
+    try {
+      const { verifyPassword } = await import('../../api/auth')
+      await verifyPassword(password)
+      onVerified()
+    } catch {
+      setError('비밀번호가 올바르지 않습니다.')
+    } finally {
+      setIsVerifying(false)
+    }
   }
 
   return (

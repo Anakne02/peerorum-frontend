@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   BarChart3,
@@ -67,9 +67,15 @@ export default function CompareSpec2Page() {
   
 
   
+  const initializedRef = React.useRef(false)
+  
   useEffect(() => {
+    if (initializedRef.current) return
+    initializedRef.current = true
+    
     fetchMyProfile().then((myProfile) => {
-      const grade = Math.max(1, 2026 - myProfile.entranceYear + 1) + '학년';
+      const gradeNum = Math.max(1, Math.min(4, new Date().getFullYear() - myProfile.entranceYear + 1))
+      const grade = gradeNum + '학년';
       
       // 만약 URL 파라미터가 비어있다면(첫 진입 시) 내 정보로 초기화
       if (!searchParams.has('major')) {
@@ -93,7 +99,8 @@ export default function CompareSpec2Page() {
       alert('스펙 등록을 먼저 완료해주세요.');
       navigate('/mypage/specs/register');
     });
-  }, [navigate, searchParams, setSearchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const gpaColumnLabel = appliedCompareCriterion === '전공 학점만' ? '전공 학점' : '평균 학점'
 

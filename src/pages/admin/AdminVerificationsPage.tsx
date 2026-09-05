@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Calendar, ChevronDown, ChevronLeft, ChevronRight, Download, FileText, MoreVertical, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout'
 import { fetchAdminVerifications, type AdminVerificationData } from '../../api/admin'
 

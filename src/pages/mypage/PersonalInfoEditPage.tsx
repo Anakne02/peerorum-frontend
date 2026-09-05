@@ -146,9 +146,10 @@ export default function PersonalInfoEditPage() {
           </button>
           <button
             type="submit"
-            className="rounded-lg bg-blue-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-blue-700"
+            disabled={isSubmitting}
+            className="rounded-lg bg-blue-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
           >
-            저장하기
+            {isSubmitting ? '저장 중...' : '저장하기'}
           </button>
         </div>
       </form>

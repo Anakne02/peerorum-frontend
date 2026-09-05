@@ -10,6 +10,8 @@ export interface CompareSpecProfile {
   gpa: number
   toeicScore: number
   verificationCount: number
+  internCount: number
+  activityCount: number
 }
 
 export interface CertificateDto {
