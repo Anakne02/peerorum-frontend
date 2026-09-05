@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { verifyPassword } from '../../api/auth'
 import { useNavigate } from 'react-router-dom'
 import { AlertTriangle, Bell, ChevronRight, Lock, UserPen } from 'lucide-react'
 import MyPageLayout from '../../layouts/MyPageLayout'
@@ -44,7 +45,7 @@ function PasswordGate({ onVerified }: { onVerified: () => void }) {
             type="submit"
             className="mt-1 w-full rounded-xl bg-blue-600 py-3 text-[14.5px] font-semibold text-white transition-colors hover:bg-blue-700"
           >
-            확인
+            {isVerifying ? '확인 중...' : '확인'}
           </button>
         </form>
       </div>

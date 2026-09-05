@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getProfileDetail } from '../../api/comparison'
 import type { ProfileDetailResponse } from '../../api/comparison'
+import { fetchMyProfile, type MyProfileData } from '../../api/profile'
 import { Link, useParams } from 'react-router-dom'
 import {
   Award,
@@ -72,15 +73,18 @@ export default function AnonymousProfileDetailPage() {
 
   const activeGpaIndex = activeGpaBucketIndex(student.gpa)
   
-  // Calculate synthetic values if they don't exist in ProfileDetailResponse
-  // Since we don't have percentiles from backend, we will use mock-like percentages for now, 
-  // or you could calculate them based on actual logic later.
-  const gpaPercentile = 5; 
-  const langPercentile = 10;
-  const certsPercentile = 15;
-  const activityPercentile = 20;
-  const internPercentile = 25;
-  const overallPercentile = 7;
+  // GPA percentile: calculate based on actual GPA value
+  // Higher GPA = lower percentile number (better ranking)
+  const calcGpaPercentile = (gpa: number) => {
+    if (gpa >= 4.3) return 5;
+    if (gpa >= 4.0) return 10;
+    if (gpa >= 3.7) return 20;
+    if (gpa >= 3.5) return 30;
+    if (gpa >= 3.0) return 50;
+    if (gpa >= 2.5) return 70;
+    return 90;
+  };
+  const gpaPercentile = calcGpaPercentile(student.gpa || 0);
 
   const activityString = student.activities && student.activities.length > 0 
     ? `대외활동 ${student.activities.length}회` 
@@ -101,24 +105,24 @@ export default function AnonymousProfileDetailPage() {
       value: `${student.gpa} / 4.5`,
       percentile: `상위 ${gpaPercentile}%`,
     },
-    { icon: Globe2, label: '어학', value: student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : '없음', percentile: `상위 ${langPercentile}%` },
+    { icon: Globe2, label: '어학', value: student.toeicScore > 0 ? `TOEIC ${student.toeicScore}` : '없음', percentile: null },
     {
       icon: Award,
       label: '자격증',
       value: `${student.certificates ? student.certificates.length : 0}개`,
-      percentile: `상위 ${certsPercentile}%`,
+      percentile: null,
     },
     {
       icon: Briefcase,
       label: '활동',
       value: contestString === '-' ? activityString : `${activityString} · ${contestString}`,
-      percentile: `상위 ${activityPercentile}%`,
+      percentile: null,
     },
     {
       icon: Users,
       label: '인턴',
       value: internString === '-' ? '경험 없음' : internString,
-      percentile: `상위 ${internPercentile}%`,
+      percentile: null,
     },
   ]
 
@@ -161,7 +165,7 @@ return (
               <div className="flex items-center gap-2">
                 <span className="text-[17px] font-bold text-ink-900">{student.virtualNickname}</span>
                 <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600">
-                  상위 {overallPercentile}%
+                  상위 {gpaPercentile}%
                 </span>
               </div>
               <p className="mt-0.5 text-[13px] text-gray-500">
@@ -186,7 +190,9 @@ return (
                 <div>
                   <p className="text-[11.5px] text-gray-400">{stat.label}</p>
                   <p className="text-[13px] font-bold leading-snug text-ink-900">{stat.value}</p>
-                  <p className="text-[10.5px] font-medium text-blue-600">{stat.percentile}</p>
+                  {stat.percentile && (
+                    <p className="text-[10.5px] font-medium text-blue-600">{stat.percentile}</p>
+                  )}
                 </div>
               </div>
             ))}

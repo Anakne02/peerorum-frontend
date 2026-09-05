@@ -91,3 +91,7 @@ export function getApiErrorMessage(
 
   return data?.errors?.[0]?.reason || data?.message || fallback
 }
+
+export const verifyPassword = async (password: string): Promise<void> => {
+  await api.post('/auth/verify-password', { password })
+}

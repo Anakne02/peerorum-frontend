@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   BarChart3,
   ChevronDown,
@@ -46,21 +46,23 @@ const RANK_PAGE_SIZE = 10
 
 export default function CompareSpec2Page() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
 
-  const [pendingGrade, setPendingGrade] = useState<string | null>(DEFAULT_GRADE)
-  const [pendingGpaRange, setPendingGpaRange] = useState(DEFAULT_GPA_RANGE)
-  const [pendingJob, setPendingJob] = useState<string | null>(null)
-  const [pendingCompareCriterion, setPendingCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
-  const [appliedGrade, setAppliedGrade] = useState<string | null>(DEFAULT_GRADE)
-  const [appliedJob, setAppliedJob] = useState<string | null>(null)
+  const [pendingGrade, setPendingGrade] = useState<string | null>(searchParams.get('grade'))
+  const [pendingGpaRange, setPendingGpaRange] = useState(searchParams.get('gpaRange') || DEFAULT_GPA_RANGE)
+  const [pendingJob, setPendingJob] = useState<string | null>(searchParams.get('job') || null)
+  const [pendingCompareCriterion, setPendingCompareCriterion] = useState(searchParams.get('criterion') || DEFAULT_COMPARE_CRITERION)
+  const [pendingMajor, setPendingMajor] = useState(searchParams.get('major') || '경영학부')
+  
+  const appliedGrade = searchParams.get('grade')
+  const appliedJob = searchParams.get('job') || null
+  const appliedGpaRange = searchParams.get('gpaRange') || DEFAULT_GPA_RANGE
+  const appliedCompareCriterion = searchParams.get('criterion') || DEFAULT_COMPARE_CRITERION
+  const appliedMajor = searchParams.get('major') || '경영학부'
+  
   const [myNickname, setMyNickname] = useState<string | null>(null)
   const [isReady, setIsReady] = useState(false)
-  const [appliedGpaRange, setAppliedGpaRange] = useState(DEFAULT_GPA_RANGE)
-  const [appliedCompareCriterion, setAppliedCompareCriterion] = useState(DEFAULT_COMPARE_CRITERION)
   const [page, setPage] = useState(1)
-
-  const [pendingMajor, setPendingMajor] = useState('경영학부')
-  const [appliedMajor, setAppliedMajor] = useState('경영학부')
   const [profiles, setProfiles] = useState<CompareSpecProfile[]>([])
   
 
@@ -68,12 +70,22 @@ export default function CompareSpec2Page() {
   useEffect(() => {
     fetchMyProfile().then((myProfile) => {
       const grade = Math.max(1, 2026 - myProfile.entranceYear + 1) + '학년';
-      setPendingMajor(myProfile.major);
-      setAppliedMajor(myProfile.major);
-      setPendingGrade(grade);
-      setAppliedGrade(grade);
-      setPendingJob(myProfile.desiredJob);
-      setAppliedJob(myProfile.desiredJob);
+      
+      // 만약 URL 파라미터가 비어있다면(첫 진입 시) 내 정보로 초기화
+      if (!searchParams.has('major')) {
+        const newParams = new URLSearchParams()
+        newParams.set('major', myProfile.major)
+        newParams.set('grade', grade)
+        if (myProfile.desiredJob) newParams.set('job', myProfile.desiredJob)
+        newParams.set('gpaRange', DEFAULT_GPA_RANGE)
+        newParams.set('criterion', DEFAULT_COMPARE_CRITERION)
+        setSearchParams(newParams, { replace: true })
+        
+        setPendingMajor(myProfile.major)
+        setPendingGrade(grade)
+        setPendingJob(myProfile.desiredJob || null)
+      }
+      
       setMyNickname(myProfile.nickname);
       setIsReady(true);
     }).catch((e) => {
@@ -81,7 +93,7 @@ export default function CompareSpec2Page() {
       alert('스펙 등록을 먼저 완료해주세요.');
       navigate('/mypage/specs/register');
     });
-  }, [navigate]);
+  }, [navigate, searchParams, setSearchParams]);
 
   const gpaColumnLabel = appliedCompareCriterion === '전공 학점만' ? '전공 학점' : '평균 학점'
 
@@ -123,11 +135,13 @@ export default function CompareSpec2Page() {
   )
 
   const handleSearch = () => {
-    setAppliedGrade(pendingGrade)
-    setAppliedGpaRange(pendingGpaRange)
-    setAppliedCompareCriterion(pendingCompareCriterion)
-    setAppliedMajor(pendingMajor)
-    setAppliedJob(pendingJob)
+    const newParams = new URLSearchParams()
+    newParams.set('major', pendingMajor)
+    if (pendingGrade) newParams.set('grade', pendingGrade)
+    if (pendingJob) newParams.set('job', pendingJob)
+    newParams.set('gpaRange', pendingGpaRange)
+    newParams.set('criterion', pendingCompareCriterion)
+    setSearchParams(newParams)
     setPage(1)
   }
 
@@ -137,10 +151,13 @@ export default function CompareSpec2Page() {
     setPendingJob(null)
     setPendingCompareCriterion(DEFAULT_COMPARE_CRITERION)
     setPendingMajor('경영학부')
-    setAppliedGrade(DEFAULT_GRADE)
-    setAppliedGpaRange(DEFAULT_GPA_RANGE)
-    setAppliedCompareCriterion(DEFAULT_COMPARE_CRITERION)
-    setAppliedMajor('경영학부')
+    
+    const newParams = new URLSearchParams()
+    newParams.set('major', '경영학부')
+    newParams.set('grade', DEFAULT_GRADE)
+    newParams.set('gpaRange', DEFAULT_GPA_RANGE)
+    newParams.set('criterion', DEFAULT_COMPARE_CRITERION)
+    setSearchParams(newParams)
     setPage(1)
   }
 
