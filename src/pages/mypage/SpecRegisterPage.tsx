@@ -253,10 +253,7 @@ export default function SpecRegisterPage() {
   const completeCountByCategory = (category: CategoryConfig) =>
     entries[category.key].filter((entry) => isEntryComplete(category, entry)).length
 
-  const totalCompleteEntries = CATEGORIES.reduce(
-    (sum, category) => sum + completeCountByCategory(category),
-    0,
-  )
+  const isGpaComplete = completeCountByCategory(CATEGORIES.find((c) => c.key === 'gpa')!) > 0
 
   const addEntry = (categoryKey: string) => {
     setEntries((prev) => ({ ...prev, [categoryKey]: [...prev[categoryKey], {}] }))
@@ -281,7 +278,7 @@ export default function SpecRegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    if (totalCompleteEntries === 0) return
+    if (!isGpaComplete) return
     setIsSubmitting(true)
     
     try {
@@ -397,6 +394,11 @@ export default function SpecRegisterPage() {
                       <category.icon className="h-4 w-4" />
                     </span>
                     <h3 className="text-[14.5px] font-bold text-ink-900">{category.title}</h3>
+                    {category.key === 'gpa' && (
+                      <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-[10.5px] font-semibold text-red-500">
+                        필수
+                      </span>
+                    )}
                     {requiresVerification && (
                       <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10.5px] font-semibold text-blue-600">
                         인증 필수
@@ -542,7 +544,7 @@ export default function SpecRegisterPage() {
 
           <button
             type="button"
-            disabled={totalCompleteEntries === 0 || isSubmitting}
+            disabled={!isGpaComplete || isSubmitting}
             onClick={handleSubmit}
             className="w-full rounded-xl bg-blue-600 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
           >

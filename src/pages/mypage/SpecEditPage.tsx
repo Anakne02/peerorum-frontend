@@ -244,6 +244,7 @@ export default function SpecEditPage() {
   }
 
   const removeEntry = (categoryKey: string, index: number) => {
+    if (categoryKey === 'gpa' && entries.gpa.length <= 1) return
     setEntries((prev) => ({
       ...prev,
       [categoryKey]: prev[categoryKey].filter((_, i) => i !== index),
@@ -264,6 +265,8 @@ export default function SpecEditPage() {
     }))
   }
 
+  const isGpaComplete = entries.gpa.some((entry) => (entry.gpaAverage ?? '').trim().length > 0)
+
   const hasUnverifiedRequiredEntry = CATEGORIES.some((category) => {
     if (category.hasVerification === false) return false
     return entries[category.key].some((entry) => {
@@ -278,6 +281,7 @@ export default function SpecEditPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSave = async () => {
+    if (!isGpaComplete) return
     setIsSubmitting(true)
     
     try {
@@ -354,7 +358,7 @@ export default function SpecEditPage() {
           </button>
           <button
             type="button"
-            disabled={hasUnverifiedRequiredEntry || isSubmitting}
+            disabled={hasUnverifiedRequiredEntry || !isGpaComplete || isSubmitting}
             onClick={handleSave}
             className="rounded-lg bg-blue-600 px-4 py-2 text-[13px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
           >
@@ -363,6 +367,11 @@ export default function SpecEditPage() {
         </div>
       </div>
 
+      {!isGpaComplete && (
+        <p className="mt-3 text-[12.5px] font-medium text-red-500">
+          * 학점은 필수 항목이에요. 평점평균을 입력해야 저장할 수 있어요.
+        </p>
+      )}
       {hasUnverifiedRequiredEntry && (
         <p className="mt-3 text-[12.5px] font-medium text-amber-600">
           * 인증이 필요한 항목이 있어요. 증빙자료를 첨부해 인증을 완료해야 저장할 수 있어요.
@@ -394,6 +403,11 @@ export default function SpecEditPage() {
                     <category.icon className="h-4 w-4" />
                   </span>
                   <h3 className="text-[14.5px] font-bold text-ink-900">{category.title}</h3>
+                  {category.key === 'gpa' && (
+                    <span className="rounded-full border border-red-100 bg-red-50 px-2 py-0.5 text-[10.5px] font-semibold text-red-500">
+                      필수
+                    </span>
+                  )}
                   {requiresVerification && (
                     <span className="rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10.5px] font-semibold text-blue-600">
                       인증 필수
@@ -447,8 +461,9 @@ export default function SpecEditPage() {
                         <button
                           type="button"
                           onClick={() => removeEntry(category.key, index)}
+                          disabled={category.key === 'gpa' && entries.gpa.length <= 1}
                           aria-label="삭제"
-                          className="text-gray-300 hover:text-red-500"
+                          className="text-gray-300 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-gray-300"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -517,6 +532,11 @@ export default function SpecEditPage() {
         })}
       </div>
 
+      {!isGpaComplete && (
+        <p className="mt-5 text-[12.5px] font-medium text-red-500">
+          * 학점은 필수 항목이에요. 평점평균을 입력해야 저장할 수 있어요.
+        </p>
+      )}
       {hasUnverifiedRequiredEntry && (
         <p className="mt-5 text-[12.5px] font-medium text-amber-600">
           * 인증이 필요한 항목이 있어요. 증빙자료를 첨부해 인증을 완료해야 저장할 수 있어요.
@@ -533,7 +553,7 @@ export default function SpecEditPage() {
         </button>
         <button
           type="button"
-          disabled={hasUnverifiedRequiredEntry || isSubmitting}
+          disabled={hasUnverifiedRequiredEntry || !isGpaComplete || isSubmitting}
           onClick={handleSave}
           className="rounded-lg bg-blue-600 px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
         >
