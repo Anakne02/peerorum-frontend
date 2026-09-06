@@ -9,6 +9,7 @@ import { clearAuthenticationSession } from '../api/auth'
 import { api } from '../api/axios'
 
 export type UserRole = 'user' | 'admin'
+export type AuthProviderType = 'LOCAL' | 'SOCIAL'
 
 export interface AuthUser {
   name: string
@@ -20,6 +21,7 @@ export interface AuthUser {
   desiredJob: string
   hasSpec: boolean
   role: UserRole
+  provider: AuthProviderType
 }
 
 interface AuthContextValue {
@@ -56,6 +58,7 @@ function emptyUser(partial?: Partial<AuthUser>): AuthUser {
     desiredJob: partial?.desiredJob ?? localStorage.getItem('desiredJob') ?? '',
     hasSpec: partial?.hasSpec ?? localStorage.getItem('hasSpec') === 'true',
     role: partial?.role ?? getStoredUserRole(),
+    provider: partial?.provider ?? (localStorage.getItem('provider') as AuthProviderType | null) ?? 'LOCAL',
   }
 }
 
@@ -76,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('desiredJob', nextUser.desiredJob)
     localStorage.setItem('hasSpec', String(nextUser.hasSpec))
     localStorage.setItem('uiRole', nextUser.role)
+    localStorage.setItem('provider', nextUser.provider)
     setUser(nextUser)
   }, [])
 

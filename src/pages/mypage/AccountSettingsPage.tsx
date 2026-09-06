@@ -9,7 +9,6 @@ function PasswordGate({ onVerified }: { onVerified: () => void }) {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
-  const { user } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,12 +17,6 @@ function PasswordGate({ onVerified }: { onVerified: () => void }) {
       return
     }
     setError('')
-    // 소셜 로그인 사용자는 비밀번호 검증 없이 바로 진입
-    const provider = (user as any)?.provider
-    if (provider && provider !== 'LOCAL') {
-      onVerified()
-      return
-    }
     setIsVerifying(true)
     try {
       const { verifyPassword } = await import('../../api/auth')
@@ -71,8 +64,9 @@ function PasswordGate({ onVerified }: { onVerified: () => void }) {
 
 export default function AccountSettingsPage() {
   const navigate = useNavigate()
-  const { logout } = useAuth()
-  const [verified, setVerified] = useState(false)
+  const { logout, user } = useAuth()
+  const isSocialUser = user?.provider === 'SOCIAL'
+  const [verified, setVerified] = useState(isSocialUser)
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [withdrawOpen, setWithdrawOpen] = useState(false)
 

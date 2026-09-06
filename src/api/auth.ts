@@ -74,6 +74,7 @@ export function clearAuthenticationSession() {
   localStorage.removeItem('nickname')
   localStorage.removeItem('hasSpec')
   localStorage.removeItem('uiRole')
+  localStorage.removeItem('provider')
 }
 
 export function getApiErrorMessage(

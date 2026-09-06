@@ -47,7 +47,7 @@ export default function OAuth2RedirectHandler() {
         const sessionName = session.name?.trim() || redirectName || '회원'
 
         if (session.role === 'ROLE_GUEST') {
-          login({ name: sessionName, role: 'user', hasSpec: false })
+          login({ name: sessionName, role: 'user', hasSpec: false, provider: 'SOCIAL' })
           navigate('/signup?mode=onboarding', { replace: true })
           return
         }
@@ -68,6 +68,7 @@ export default function OAuth2RedirectHandler() {
           desiredJob: profile?.desiredJob || '',
           role: session.role === 'ROLE_ADMIN' ? 'admin' : 'user',
           hasSpec: true,
+          provider: 'SOCIAL',
         })
 
         navigate(session.role === 'ROLE_ADMIN' ? '/admin' : '/mypage/specs', {

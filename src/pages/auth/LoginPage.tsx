@@ -56,6 +56,7 @@ export default function LoginPage() {
           email: email.trim(),
           role: 'user',
           hasSpec: false,
+          provider: 'LOCAL',
         })
         navigate('/signup?mode=onboarding')
         return
@@ -82,6 +83,7 @@ export default function LoginPage() {
         desiredJob: profile?.desiredJob || '',
         role: session.role === 'ROLE_ADMIN' ? 'admin' : 'user',
         hasSpec: true,
+        provider: 'LOCAL',
       })
 
       navigate(session.role === 'ROLE_ADMIN' ? '/admin' : '/mypage/specs')

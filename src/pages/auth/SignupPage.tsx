@@ -250,6 +250,7 @@ export default function SignupPage() {
         email: email.trim(),
         role: 'user',
         hasSpec: false,
+        provider: 'LOCAL',
       })
       setStep('basic')
     } catch (error) {
@@ -300,6 +301,7 @@ export default function SignupPage() {
         nickname,
         hasSpec: false,
         role: session.role === 'ROLE_ADMIN' ? 'admin' : 'user',
+        provider: signupMethod === 'oauth' ? 'SOCIAL' : 'LOCAL',
       })
       setStep('complete')
     } catch (error) {
