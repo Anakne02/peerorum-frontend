@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Award,
@@ -141,6 +141,21 @@ type EvidenceStatus = 'none' | 'pending' | 'verified'
 const getEvidenceStatus = (entry: Entry): EvidenceStatus =>
   entry._status === 'verified' ? 'verified' : entry._status === 'pending' ? 'pending' : 'none'
 
+const SPEC_EDIT_DRAFT_KEY = 'specEditDraft'
+
+function loadEditDraft(): Record<string, Entry[]> | null {
+  try {
+    const raw = sessionStorage.getItem(SPEC_EDIT_DRAFT_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function clearEditDraft() {
+  sessionStorage.removeItem(SPEC_EDIT_DRAFT_KEY)
+}
+
 function FieldInput({
   field,
   value,
@@ -224,6 +239,9 @@ export default function SpecEditPage() {
   const { setHasSpec, updateProfile, user } = useAuth()
   const { entries: savedEntries, loadFromProfile } = useSpec()
   const [entries, setEntries] = useState<Record<string, Entry[]>>(() => {
+    const draft = loadEditDraft()
+    if (draft) return draft
+
     const gradeValue = localStorage.getItem('grade') || '4학년';
     const initialized = { ...savedEntries };
     if (initialized.gpa && initialized.gpa.length > 0 && !initialized.gpa[0].grade) {
@@ -232,6 +250,10 @@ export default function SpecEditPage() {
     return initialized;
   })
   const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
+
+  useEffect(() => {
+    sessionStorage.setItem(SPEC_EDIT_DRAFT_KEY, JSON.stringify(entries))
+  }, [entries])
 
   const addEntry = (categoryKey: string) => {
     setEntries((prev) => ({ 
@@ -329,6 +351,7 @@ export default function SpecEditPage() {
       })
       
       setHasSpec(true)
+      clearEditDraft()
       navigate('/mypage/specs')
     } catch (e) {
       console.error('Failed to submit specs', e)
@@ -351,7 +374,10 @@ export default function SpecEditPage() {
         <div className="flex shrink-0 gap-2">
           <button
             type="button"
-            onClick={() => navigate('/mypage/specs')}
+            onClick={() => {
+              clearEditDraft()
+              navigate('/mypage/specs')
+            }}
             className="rounded-lg border border-gray-200 px-4 py-2 text-[13px] font-medium text-ink-900 hover:bg-gray-50"
           >
             취소
@@ -546,7 +572,10 @@ export default function SpecEditPage() {
       <div className="mt-3 flex justify-end gap-2">
         <button
           type="button"
-          onClick={() => navigate('/mypage/specs')}
+          onClick={() => {
+            clearEditDraft()
+            navigate('/mypage/specs')
+          }}
           className="rounded-lg border border-gray-200 px-5 py-2.5 text-[13.5px] font-medium text-ink-900 hover:bg-gray-50"
         >
           취소

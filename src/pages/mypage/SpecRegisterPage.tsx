@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Award,
@@ -154,6 +154,21 @@ const GUIDE_ITEMS = [
 type Entry = Record<string, string>
 type EvidenceStatus = 'none' | 'pending' | 'verified'
 
+const SPEC_REGISTER_DRAFT_KEY = 'specRegisterDraft'
+
+function loadRegisterDraft(): Record<string, Entry[]> | null {
+  try {
+    const raw = sessionStorage.getItem(SPEC_REGISTER_DRAFT_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function clearRegisterDraft() {
+  sessionStorage.removeItem(SPEC_REGISTER_DRAFT_KEY)
+}
+
 const getEvidenceStatus = (entry: Entry): EvidenceStatus =>
   entry._status === 'verified' ? 'verified' : entry._status === 'pending' ? 'pending' : 'none'
 
@@ -240,10 +255,14 @@ export default function SpecRegisterPage() {
   const { setHasSpec } = useAuth()
   const { loadFromProfile } = useSpec()
 
-  const [entries, setEntries] = useState<Record<string, Entry[]>>(() =>
-    Object.fromEntries(CATEGORIES.map((c) => [c.key, []])),
+  const [entries, setEntries] = useState<Record<string, Entry[]>>(
+    () => loadRegisterDraft() ?? Object.fromEntries(CATEGORIES.map((c) => [c.key, []])),
   )
   const [uploadTarget, setUploadTarget] = useState<{ categoryKey: string; index: number } | null>(null)
+
+  useEffect(() => {
+    sessionStorage.setItem(SPEC_REGISTER_DRAFT_KEY, JSON.stringify(entries))
+  }, [entries])
 
   const isEntryComplete = (category: CategoryConfig, entry: Entry) =>
     category.fields
@@ -315,8 +334,9 @@ export default function SpecRegisterPage() {
       // 2. Fetch fresh data from backend and load it into context
       const profileData = await fetchMyProfile()
       loadFromProfile(profileData)
-      
+
       setHasSpec(true)
+      clearRegisterDraft()
       navigate('/mypage/specs')
     } catch (e) {
       console.error('Failed to submit specs', e)
@@ -337,7 +357,10 @@ export default function SpecRegisterPage() {
         </div>
         <button
           type="button"
-          onClick={() => navigate('/mypage/specs')}
+          onClick={() => {
+            clearRegisterDraft()
+            navigate('/mypage/specs')
+          }}
           className="flex shrink-0 items-center gap-1 text-[13px] font-medium text-gray-400 hover:text-gray-600"
         >
           <X className="h-3.5 w-3.5" />
