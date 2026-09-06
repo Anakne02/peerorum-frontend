@@ -9,7 +9,6 @@ const STUDENTS = [
     gpa: '4.25',
     gpaPercentile: '상위 14%',
     lang: 'TOEIC 900',
-    langPercentile: '상위 18%',
     certs: '3개',
     activities: '인턴 1회\n대외활동 3개',
     job: '마케팅',
@@ -20,7 +19,6 @@ const STUDENTS = [
     gpa: '3.85',
     gpaPercentile: '상위 32%',
     lang: 'OPIc IH',
-    langPercentile: '상위 41%',
     certs: '2개',
     activities: '대외활동 4개\n공모전 2회',
     job: '마케팅',
@@ -80,7 +78,6 @@ export default function ComparisonSection() {
                   </td>
                   <td className="px-6 py-5">
                     <div className="text-[14px] font-semibold text-ink-900">{student.lang}</div>
-                    <div className="text-[12px] text-blue-600">{student.langPercentile}</div>
                   </td>
                   <td className="px-6 py-5 text-[14px] text-ink-900">{student.certs}</td>
                   <td className="whitespace-pre-line px-6 py-5 text-[13px] leading-snug text-ink-900">

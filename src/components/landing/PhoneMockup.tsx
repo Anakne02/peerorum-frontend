@@ -14,7 +14,7 @@ const STATS = [
     icon: Globe2,
     label: '어학',
     value: 'OPIc IH',
-    percentile: '상위 31%',
+    percentile: undefined,
     iconBg: 'bg-blue-50',
     iconColor: 'text-blue-600',
   },
@@ -67,7 +67,9 @@ export default function PhoneMockup() {
               </div>
               <div className="text-right">
                 <div className="text-[12px] font-bold text-ink-900">{stat.value}</div>
-                <div className="text-[10px] text-gray-400">{stat.percentile}</div>
+                {stat.percentile && (
+                  <div className="text-[10px] text-gray-400">{stat.percentile}</div>
+                )}
               </div>
             </div>
           ))}

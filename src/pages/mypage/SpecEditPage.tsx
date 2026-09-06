@@ -60,7 +60,7 @@ const CATEGORIES: CategoryConfig[] = [
     addLabel: '학점 추가',
     fields: [
       { key: 'gpaAverage', label: '평점평균', type: 'number', max: 4.5 },
-      { key: 'convertedScore', label: '환산점수', type: 'number' },
+      { key: 'convertedScore', label: '환산점수', type: 'number', max: 100 },
       { key: 'majorGpaAverage', label: '전공평점평균', type: 'number', max: 4.5 },
       { key: 'grade', label: '이수 학년', type: 'select', options: GRADE_OPTIONS },
     ],

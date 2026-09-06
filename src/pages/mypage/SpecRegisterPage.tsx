@@ -63,7 +63,7 @@ const CATEGORIES: CategoryConfig[] = [
     addLabel: '학점 추가',
     fields: [
       { key: 'gpaAverage', label: '평점평균', type: 'number', required: true, placeholder: '4.29', max: 4.5 },
-      { key: 'convertedScore', label: '환산점수', type: 'number', placeholder: '95.3' },
+      { key: 'convertedScore', label: '환산점수', type: 'number', placeholder: '95.3', max: 100 },
       { key: 'majorGpaAverage', label: '전공평점평균', type: 'number', placeholder: '3.85', max: 4.5 },
       { key: 'grade', label: '이수 학년', type: 'select', options: GRADE_OPTIONS, required: true },
     ],
@@ -550,7 +550,7 @@ export default function SpecRegisterPage() {
           </button>
           <p className="flex items-center justify-center gap-1.5 text-[12px] text-gray-400">
             <ShieldCheck className="h-3.5 w-3.5" />
-            필수 항목(*)을 채워야 등록에 반영돼요. 입력한 정보는 검토 후 안전하게 보호돼요.
+            학점 등록은 필수예요. 학점·어학·자격증은 인증 완료 후에만 등록할 수 있어요.
           </p>
         </div>
 
