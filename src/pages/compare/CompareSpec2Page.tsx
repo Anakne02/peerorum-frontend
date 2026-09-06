@@ -18,7 +18,6 @@ import RankPagination from '../../components/compare/RankPagination'
 import { fetchSearchPeers, type CompareSpecProfile } from '../../api/compare'
 import { fetchMyProfile } from '../../api/profile'
 import { useEffect } from 'react'
-import { JOB_CATEGORIES } from '../../data/jobCategories'
 import { COLLEGES } from '../../data/departments'
 
 
@@ -35,10 +34,8 @@ const NAV_ITEMS = [
   { label: '고객지원', to: '/#support' },
 ]
 
-const GRADES = ['1학년', '2학년', '3학년', '4학년']
 const GPA_RANGES = ['4.5 ~ 4.0', '3.9 ~ 3.5', '3.4 ~ 3.0', '2.9 ~ 2.5', '2.4 이하']
 const COMPARE_CRITERIA = ['전공 학점만', '평균 학점만']
-const DEFAULT_GRADE = '4학년'
 const DEFAULT_GPA_RANGE = GPA_RANGES[0]
 const DEFAULT_COMPARE_CRITERION = COMPARE_CRITERIA[0]
 const RANK_PAGE_SIZE = 10
@@ -49,19 +46,13 @@ export default function CompareSpec2Page() {
   const [searchParams, setSearchParams] = useSearchParams()
   const hasSavedComparison = searchParams.get('searched') === '1'
 
-  const initialGrade = hasSavedComparison ? searchParams.get('grade') : DEFAULT_GRADE
   const initialGpaRange = searchParams.get('gpaRange') || DEFAULT_GPA_RANGE
-  const initialJob = searchParams.get('job') || null
   const initialCriterion = searchParams.get('criterion') || DEFAULT_COMPARE_CRITERION
   const initialMajor = searchParams.get('major') || '경영학부'
   const initialPage = Math.max(1, Number(searchParams.get('page')) || 1)
 
-  const [pendingGrade, setPendingGrade] = useState<string | null>(initialGrade)
   const [pendingGpaRange, setPendingGpaRange] = useState(initialGpaRange)
-  const [pendingJob, setPendingJob] = useState<string | null>(initialJob)
   const [pendingCompareCriterion, setPendingCompareCriterion] = useState(initialCriterion)
-  const [appliedGrade, setAppliedGrade] = useState<string | null>(initialGrade)
-  const [appliedJob, setAppliedJob] = useState<string | null>(initialJob)
   const [myNickname, setMyNickname] = useState<string | null>(null)
   const [isReady, setIsReady] = useState(false)
   const [appliedGpaRange, setAppliedGpaRange] = useState(initialGpaRange)
@@ -82,18 +73,9 @@ export default function CompareSpec2Page() {
     initializedRef.current = true
     
     fetchMyProfile().then((myProfile) => {
-      const gradeNum = Math.max(
-        1,
-        Math.min(4, new Date().getFullYear() - myProfile.entranceYear + 1),
-      )
-      const grade = `${gradeNum}학년`
       if (!hasSavedComparison) {
         setPendingMajor(myProfile.major)
         setAppliedMajor(myProfile.major)
-        setPendingGrade(grade)
-        setAppliedGrade(grade)
-        setPendingJob(myProfile.desiredJob || null)
-        setAppliedJob(myProfile.desiredJob || null)
       }
       setMyNickname(myProfile.nickname);
       setIsReady(true);
@@ -116,14 +98,11 @@ export default function CompareSpec2Page() {
 
     
     if (!isReady) return;
-    const entranceYear = appliedGrade
-      ? new Date().getFullYear() - parseInt(appliedGrade) + 1
-      : undefined
-    fetchSearchPeers({ major: appliedMajor, entranceYear, desiredJob: appliedJob || undefined, minGpa, maxGpa })
+    fetchSearchPeers({ major: appliedMajor, minGpa, maxGpa })
       .then((res: CompareSpecProfile[]) => setProfiles(res || []))
       .catch((e: Error) => console.error(e))
       
-  }, [isReady, appliedMajor, appliedGpaRange, appliedGrade, appliedJob, searchRequest]);
+  }, [isReady, appliedMajor, appliedGpaRange, searchRequest]);
 
   const sortedProfiles = [...profiles].sort((a, b) => b.gpa - a.gpa)
   const rankByGpa = new Map<string, number>()
@@ -157,8 +136,6 @@ export default function CompareSpec2Page() {
 
   const handleSearch = () => {
     setAppliedMajor(pendingMajor)
-    setAppliedGrade(pendingGrade)
-    setAppliedJob(pendingJob)
     setAppliedGpaRange(pendingGpaRange)
     setAppliedCompareCriterion(pendingCompareCriterion)
     setPage(1)
@@ -169,8 +146,6 @@ export default function CompareSpec2Page() {
       criterion: pendingCompareCriterion,
       page: '1',
     })
-    if (pendingGrade) nextParams.set('grade', pendingGrade)
-    if (pendingJob) nextParams.set('job', pendingJob)
     setSearchParams(nextParams, { replace: true })
     setSearchRequest((request) => request + 1)
   }
@@ -183,16 +158,12 @@ export default function CompareSpec2Page() {
   }
 
   const handleReset = () => {
-    setPendingGrade(DEFAULT_GRADE)
     setPendingGpaRange(DEFAULT_GPA_RANGE)
-    setPendingJob(null)
     setPendingCompareCriterion(DEFAULT_COMPARE_CRITERION)
     setPendingMajor('경영학부')
-    setAppliedGrade(DEFAULT_GRADE)
     setAppliedGpaRange(DEFAULT_GPA_RANGE)
     setAppliedCompareCriterion(DEFAULT_COMPARE_CRITERION)
     setAppliedMajor('경영학부')
-    setAppliedJob(null)
     setPage(1)
     setSearchParams({}, { replace: true })
     setSearchRequest((request) => request + 1)
@@ -284,51 +255,7 @@ export default function CompareSpec2Page() {
 
             <div>
               <label className="mb-1.5 block text-[12.5px] font-medium text-gray-500">
-                2. 학년 선택
-              </label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {GRADES.map((grade) => (
-                  <button
-                    key={grade}
-                    type="button"
-                    onClick={() => setPendingGrade(grade === pendingGrade ? null : grade)}
-                    className={`rounded-lg border py-2 text-[12px] font-medium transition-colors ${
-                      grade === pendingGrade
-                        ? 'border-blue-600 bg-blue-50 text-blue-600'
-                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {grade}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-[12.5px] font-medium text-gray-500">
-                3. 희망 직무
-              </label>
-              <div className="grid grid-cols-4 gap-1">
-                {JOB_CATEGORIES.map((job) => (
-                  <button
-                    key={job}
-                    type="button"
-                    onClick={() => setPendingJob((prev) => (prev === job ? null : job))}
-                    className={`rounded-md border px-1.5 py-1.5 text-[11px] font-medium leading-tight transition-colors ${
-                      job === pendingJob
-                        ? 'border-blue-600 bg-blue-50 text-blue-600'
-                        : 'border-gray-200 text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    {job}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-[12.5px] font-medium text-gray-500">
-                4. 비교 기준
+                2. 비교 기준
               </label>
               <div className="relative">
                 <select
@@ -346,7 +273,7 @@ export default function CompareSpec2Page() {
 
             <div>
               <label className="mb-1.5 block text-[12.5px] font-medium text-gray-500">
-                5. 학점 구간 선택
+                3. 학점 구간 선택
               </label>
               <div className="grid grid-cols-2 gap-1.5">
                 {GPA_RANGES.map((range) => (
@@ -391,7 +318,7 @@ export default function CompareSpec2Page() {
 
         <section>
           <div className="flex flex-wrap items-center gap-2 text-[13px] text-gray-500">
-            {[appliedMajor, appliedGrade, `학점 ${appliedGpaRange}`].map((condition, index) => (
+            {[appliedMajor, `학점 ${appliedGpaRange}`].filter(Boolean).map((condition, index) => (
               <span key={condition} className="flex items-center gap-2">
                 {index > 0 && <span className="text-gray-300">|</span>}
                 <span className="font-medium text-ink-900">{condition}</span>
