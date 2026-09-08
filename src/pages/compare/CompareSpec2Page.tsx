@@ -123,6 +123,7 @@ export default function CompareSpec2Page() {
       lang: p.toeicScore > 0 ? 'TOEIC ' + p.toeicScore : '없음',
       certs: p.verificationCount + '개',
       activityCount: p.activityCount || 0,
+      awardCount: p.awardCount || 0,
       intern: p.internCount > 0 ? p.internCount + '회' : '없음',
       rank,
     }
@@ -349,9 +350,9 @@ export default function CompareSpec2Page() {
                   <th className="px-4 py-3 font-medium">{gpaColumnLabel} (4.5)</th>
                   <th className="px-4 py-3 font-medium">어학</th>
                   <th className="px-4 py-3 font-medium">자격증</th>
-                  <th className="px-4 py-3 font-medium">교내/외 활동</th>
+                  <th className="px-4 py-3 font-medium">대외활동</th>
+                  <th className="px-4 py-3 font-medium">공모전</th>
                   <th className="px-4 py-3 font-medium">인턴</th>
-                  <th className="px-4 py-3 font-medium">기타 스펙</th>
                 </tr>
               </thead>
               <tbody>
@@ -388,10 +389,10 @@ export default function CompareSpec2Page() {
                     <td className="px-4 py-3.5 text-[13px] text-ink-900">
                       {student.activityCount}개
                     </td>
-                    <td className="px-4 py-3.5 text-[13px] text-ink-900">{student.intern}</td>
-                    <td className="px-4 py-3.5">
-                      <ChevronRight className="h-4 w-4 text-gray-300" />
+                    <td className="px-4 py-3.5 text-[13px] text-ink-900">
+                      {student.awardCount}회
                     </td>
+                    <td className="px-4 py-3.5 text-[13px] text-ink-900">{student.intern}</td>
                   </tr>
                 ))}
               </tbody>

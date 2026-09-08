@@ -12,6 +12,7 @@ export interface CompareSpecProfile {
   verificationCount: number
   internCount: number
   activityCount: number
+  awardCount: number
 }
 
 export interface CertificateDto {
