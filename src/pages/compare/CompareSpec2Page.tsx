@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   BarChart3,
   ChevronDown,
-  ChevronRight,
   Filter,
   List,
   RotateCcw,

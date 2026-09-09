@@ -24,6 +24,10 @@ export interface ActivityDto {
   activityName: string
 }
 
+export interface AwardDto {
+  name: string
+}
+
 export interface ProfileDetailResponse {
   anonymousUuid: string
   virtualNickname: string
@@ -36,6 +40,7 @@ export interface ProfileDetailResponse {
   toeicScore: number
   certificates: CertificateDto[]
   activities: ActivityDto[]
+  awards: AwardDto[]
 }
 
 export interface ComparisonStatisticsResponse {
