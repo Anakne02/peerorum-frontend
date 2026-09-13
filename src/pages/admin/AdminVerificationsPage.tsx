@@ -2,7 +2,7 @@ import { Download, FileText } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Search } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout'
-import { fetchAdminVerifications, type AdminVerificationData } from '../../api/admin'
+import { decideAdminVerification, fetchAdminVerifications, type AdminVerificationData } from '../../api/admin'
 
 const STATUS_STYLE: Record<string, string> = {
   '대기 중': 'bg-orange-50 text-orange-600',
@@ -22,15 +22,34 @@ export default function AdminVerificationsPage() {
   const [activeTab, setActiveTab] = useState<string>('all')
   const [verifications, setVerifications] = useState<AdminVerificationData[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [processingId, setProcessingId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAdminVerifications()
+    const timer = window.setTimeout(() => {
+      setLoading(true)
+      fetchAdminVerifications(search, 'all')
       .then((d) => setVerifications(d.verifications))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
   const filtered = activeTab === 'all' ? verifications : verifications.filter(v => v.status === activeTab)
+
+  const decide = async (id: string, decision: 'VERIFIED' | 'REJECTED') => {
+    if (!window.confirm(decision === 'VERIFIED' ? '이 인증 요청을 승인할까요?' : '이 인증 요청을 거절할까요?')) return
+    setProcessingId(id)
+    try {
+      await decideAdminVerification(id, decision)
+      const next = await fetchAdminVerifications(search, 'all')
+      setVerifications(next.verifications)
+    } catch (error) {
+      console.error(error)
+      window.alert('요청 처리에 실패했습니다.')
+    } finally { setProcessingId(null) }
+  }
 
   return (
     <AdminLayout>
@@ -62,7 +81,7 @@ export default function AdminVerificationsPage() {
         <div className="flex flex-wrap items-center gap-3 px-5 py-4">
           <div className="relative min-w-[220px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input type="text" placeholder="이름, 사용자명, 이메일 검색" className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13.5px] outline-none placeholder:text-gray-400 focus:border-blue-500" />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="이름, 사용자명, 인증 유형 검색" className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13.5px] outline-none placeholder:text-gray-400 focus:border-blue-500" />
           </div>
           <button type="button" className="ml-auto flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-gray-50">
             <Download className="h-3.5 w-3.5" />
@@ -103,10 +122,10 @@ export default function AdminVerificationsPage() {
                       <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11.5px] font-semibold text-gray-600">{row.type}</span>
                     </td>
                     <td className="px-3 py-3.5">
-                      <span className="flex items-center gap-1.5 text-gray-600">
+                      {row.file !== '파일없음' ? <a href={row.file} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:underline">
                         <FileText className="h-3.5 w-3.5 text-rose-400" />
                         {row.file}
-                      </span>
+                      </a> : <span className="text-gray-400">파일없음</span>}
                     </td>
                     <td className="px-3 py-3.5 text-gray-500">{row.submittedAt}</td>
                     <td className="px-3 py-3.5">
@@ -116,8 +135,8 @@ export default function AdminVerificationsPage() {
                     </td>
                     <td className="px-3 py-3.5">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button type="button" className="rounded-lg border border-blue-200 px-3 py-1.5 text-[12px] font-semibold text-blue-600 hover:bg-blue-50">승인</button>
-                        <button type="button" className="rounded-lg border border-rose-200 px-3 py-1.5 text-[12px] font-semibold text-rose-600 hover:bg-rose-50">거절</button>
+                        <button type="button" onClick={() => decide(row.id, 'VERIFIED')} disabled={row.status !== '대기 중' || processingId === row.id} className="rounded-lg border border-blue-200 px-3 py-1.5 text-[12px] font-semibold text-blue-600 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-40">승인</button>
+                        <button type="button" onClick={() => decide(row.id, 'REJECTED')} disabled={row.status !== '대기 중' || processingId === row.id} className="rounded-lg border border-rose-200 px-3 py-1.5 text-[12px] font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40">거절</button>
                       </div>
                     </td>
                   </tr>
