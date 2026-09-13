@@ -18,7 +18,7 @@ export interface AdminUserData {
   major: string
   grade: string
   joinedAt: string
-  status: '활성' | '휴면' | '정지'
+  status: '활성' | '정지' | '탈퇴'
   verified: '인증대기' | '인증완료'
 }
 
@@ -27,6 +27,9 @@ export interface AdminUserResponse {
   totalElements: number
   totalPages: number
   currentPage: number
+  totalActive: number
+  totalSuspended: number
+  totalWithdrawn: number
 }
 
 export interface AdminVerificationData {
@@ -49,14 +52,20 @@ export const fetchAdminDashboard = async (): Promise<AdminDashboardData> => {
   return response.data.data
 }
 
-export const fetchAdminUsers = async (page = 0, size = 10): Promise<AdminUserResponse> => {
-  const response = await api.get(`/admin/users?page=${page}&size=${size}`)
+export interface AdminUserFilters { keyword?: string; status?: string; verified?: boolean; joinedWithinDays?: number }
+
+export const fetchAdminUsers = async (page = 0, size = 10, filters: AdminUserFilters = {}): Promise<AdminUserResponse> => {
+  const response = await api.get('/admin/users', { params: { page, size, ...filters } })
   return response.data.data
 }
 
-export const fetchAdminVerifications = async (): Promise<AdminVerificationResponse> => {
-  const response = await api.get('/admin/verifications')
+export const fetchAdminVerifications = async (keyword = '', status = 'all'): Promise<AdminVerificationResponse> => {
+  const response = await api.get('/admin/verifications', { params: { keyword, status } })
   return response.data.data
+}
+
+export const decideAdminVerification = async (id: string, decision: 'VERIFIED' | 'REJECTED'): Promise<void> => {
+  await api.patch(`/admin/verifications/${id}`, { decision })
 }
 
 export interface AdminSuspensionData {
@@ -66,7 +75,7 @@ export interface AdminSuspensionData {
   type: '정지' | '탈퇴' | string
   reason: string
   requestedAt: string
-  status: '대기 중' | '검토 중' | '처리 완료' | string
+  status: '대기 중' | '승인됨' | '거절됨' | string
 }
 
 export interface AdminSuspensionResponse {
@@ -74,7 +83,11 @@ export interface AdminSuspensionResponse {
   totalElements: number
 }
 
-export const fetchAdminSuspensions = async (): Promise<AdminSuspensionResponse> => {
-  const response = await api.get('/admin/suspensions')
+export const fetchAdminSuspensions = async (keyword = '', type = 'all', status = 'all'): Promise<AdminSuspensionResponse> => {
+  const response = await api.get('/admin/suspensions', { params: { keyword, type, status } })
   return response.data.data
+}
+
+export const decideAdminSuspension = async (id: string, decision: 'APPROVED' | 'REJECTED'): Promise<void> => {
+  await api.patch(`/admin/suspensions/${id}`, { decision })
 }

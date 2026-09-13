@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ChevronDown, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout'
-import { fetchAdminSuspensions, type AdminSuspensionData } from '../../api/admin'
+import { decideAdminSuspension, fetchAdminSuspensions, type AdminSuspensionData } from '../../api/admin'
 
 const STATUS_STYLE: Record<string, string> = {
   '대기 중': 'bg-orange-50 text-orange-600',
-  '검토 중': 'bg-blue-50 text-blue-600',
-  '처리 완료': 'bg-emerald-50 text-emerald-600',
+  '승인됨': 'bg-emerald-50 text-emerald-600',
+  '거절됨': 'bg-gray-100 text-gray-500',
 }
 
 const TYPE_STYLE: Record<string, string> = {
@@ -18,17 +18,35 @@ export default function AdminSuspensionsPage() {
   const [suspensions, setSuspensions] = useState<AdminSuspensionData[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [type, setType] = useState('all')
+  const [status, setStatus] = useState('all')
+  const [processingId, setProcessingId] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchAdminSuspensions()
+    const timer = window.setTimeout(() => {
+      setLoading(true)
+      fetchAdminSuspensions(search, type, status)
       .then((d) => setSuspensions(d.suspensions))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [])
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [search, type, status])
 
-  const filtered = search
-    ? suspensions.filter((s) => s.name.includes(search) || s.type.includes(search) || s.reason.includes(search))
-    : suspensions
+  const filtered = suspensions
+
+  const decide = async (id: string, decision: 'APPROVED' | 'REJECTED') => {
+    if (!window.confirm(decision === 'APPROVED' ? '이 요청을 승인할까요? 승인 즉시 계정 이용이 제한됩니다.' : '이 요청을 거절할까요?')) return
+    setProcessingId(id)
+    try {
+      await decideAdminSuspension(id, decision)
+      const next = await fetchAdminSuspensions(search, type, status)
+      setSuspensions(next.suspensions)
+    } catch (error) {
+      console.error(error)
+      window.alert('요청 처리에 실패했습니다.')
+    } finally { setProcessingId(null) }
+  }
 
   return (
     <AdminLayout>
@@ -49,14 +67,8 @@ export default function AdminSuspensionsPage() {
               className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13.5px] outline-none placeholder:text-gray-400 focus:border-blue-500"
             />
           </div>
-          <button type="button" className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] font-medium text-ink-900 hover:bg-gray-50">
-            유형
-            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-          </button>
-          <button type="button" className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] font-medium text-ink-900 hover:bg-gray-50">
-            상태
-            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-          </button>
+          <select value={type} onChange={(e) => setType(e.target.value)} className="rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px]"><option value="all">전체 유형</option><option value="정지">정지</option><option value="탈퇴">탈퇴</option></select>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px]"><option value="all">전체 상태</option><option value="대기 중">대기 중</option><option value="승인됨">승인됨</option><option value="거절됨">거절됨</option></select>
         </div>
 
         {loading ? (
@@ -101,8 +113,8 @@ export default function AdminSuspensionsPage() {
                     </td>
                     <td className="px-3 py-3.5">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button type="button" className="rounded-lg border border-emerald-200 px-3 py-1.5 text-[12px] font-semibold text-emerald-600 hover:bg-emerald-50">승인</button>
-                        <button type="button" className="rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] font-semibold text-gray-500 hover:bg-gray-50">거절</button>
+                        <button type="button" onClick={() => decide(row.id, 'APPROVED')} disabled={row.status !== '대기 중' || processingId === row.id} className="rounded-lg border border-emerald-200 px-3 py-1.5 text-[12px] font-semibold text-emerald-600 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-40">승인</button>
+                        <button type="button" onClick={() => decide(row.id, 'REJECTED')} disabled={row.status !== '대기 중' || processingId === row.id} className="rounded-lg border border-gray-200 px-3 py-1.5 text-[12px] font-semibold text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40">거절</button>
                       </div>
                     </td>
                   </tr>

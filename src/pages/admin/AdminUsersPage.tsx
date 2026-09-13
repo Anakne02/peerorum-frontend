@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, ChevronDown, Download, RefreshCw, Search, Users, UserCheck, UserCog, UserX } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, RefreshCw, Search, Users, UserCheck, UserCog, UserX } from 'lucide-react'
 import AdminLayout from '../../layouts/AdminLayout'
 import StatTile from '../../components/admin/StatTile'
 import { fetchAdminUsers, type AdminUserData, type AdminUserResponse } from '../../api/admin'
 
 const STATUS_STYLE: Record<string, string> = {
   활성: 'bg-emerald-50 text-emerald-600',
-  휴면: 'bg-gray-100 text-gray-500',
+  탈퇴: 'bg-gray-100 text-gray-500',
   정지: 'bg-rose-50 text-rose-600',
 }
 
@@ -15,31 +15,34 @@ const VERIFIED_STYLE: Record<string, string> = {
   인증대기: 'bg-amber-50 text-amber-600',
 }
 
-const FILTERS = ['상태', '인증 여부', '가입일']
-
 export default function AdminUsersPage() {
   const [data, setData] = useState<AdminUserResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('all')
+  const [verified, setVerified] = useState('all')
+  const [joinedWithinDays, setJoinedWithinDays] = useState('all')
 
   useEffect(() => {
-    setLoading(true)
-    fetchAdminUsers(page)
+    const timer = window.setTimeout(() => {
+      setLoading(true)
+      fetchAdminUsers(page, 10, {
+        keyword: search || undefined,
+        status: status === 'all' ? undefined : status,
+        verified: verified === 'all' ? undefined : verified === 'true',
+        joinedWithinDays: joinedWithinDays === 'all' ? undefined : Number(joinedWithinDays),
+      })
       .then((d) => setData(d))
       .catch(console.error)
       .finally(() => setLoading(false))
-  }, [page])
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [page, search, status, verified, joinedWithinDays])
 
   const users: AdminUserData[] = data?.users ?? []
   const totalElements = data?.totalElements ?? 0
   const totalPages = data?.totalPages ?? 1
-
-  const filteredUsers = search
-    ? users.filter((u) =>
-        u.name.includes(search) || u.school.includes(search) || u.major.includes(search)
-      )
-    : users
 
   return (
     <AdminLayout>
@@ -53,24 +56,17 @@ export default function AdminUsersPage() {
           <input
             type="text"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="이름, 학교, 전공으로 검색하세요."
+            onChange={(e) => { setSearch(e.target.value); setPage(0) }}
+            placeholder="이름, 이메일, 익명 ID, 학교, 전공 검색"
             className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13.5px] outline-none placeholder:text-gray-400 focus:border-blue-500"
           />
         </div>
-        {FILTERS.map((filter) => (
-          <button
-            key={filter}
-            type="button"
-            className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] font-medium text-ink-900 hover:bg-gray-50"
-          >
-            {filter}
-            <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
-          </button>
-        ))}
+        <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(0) }} className="rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px]"><option value="all">전체 상태</option><option value="ACTIVE">활성</option><option value="SUSPENDED">정지</option><option value="WITHDRAWN">탈퇴</option></select>
+        <select value={verified} onChange={(e) => { setVerified(e.target.value); setPage(0) }} className="rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px]"><option value="all">전체 인증</option><option value="true">인증완료</option><option value="false">인증대기</option></select>
+        <select value={joinedWithinDays} onChange={(e) => { setJoinedWithinDays(e.target.value); setPage(0) }} className="rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px]"><option value="all">전체 가입일</option><option value="7">최근 7일</option><option value="30">최근 30일</option><option value="365">최근 1년</option></select>
         <button
           type="button"
-          onClick={() => { setSearch(''); setPage(0); }}
+          onClick={() => { setSearch(''); setStatus('all'); setVerified('all'); setJoinedWithinDays('all'); setPage(0) }}
           className="flex items-center gap-1.5 rounded-xl border border-gray-200 px-3.5 py-2.5 text-[13px] font-medium text-gray-500 hover:bg-gray-50"
         >
           <RefreshCw className="h-3.5 w-3.5" />
@@ -80,9 +76,9 @@ export default function AdminUsersPage() {
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile icon={Users} iconClassName="bg-blue-50 text-blue-600" label="전체 사용자" value={`${totalElements.toLocaleString()}명`} />
-        <StatTile icon={UserCheck} iconClassName="bg-emerald-50 text-emerald-600" label="활성 사용자" value={`${users.filter(u => u.status === '활성').length}명`} />
-        <StatTile icon={UserCog} iconClassName="bg-orange-50 text-orange-600" label="휴면 계정" value={`${users.filter(u => u.status === '휴면').length}명`} />
-        <StatTile icon={UserX} iconClassName="bg-rose-50 text-rose-600" label="정지 계정" value={`${users.filter(u => u.status === '정지').length}명`} />
+        <StatTile icon={UserCheck} iconClassName="bg-emerald-50 text-emerald-600" label="활성 사용자" value={`${(data?.totalActive ?? 0).toLocaleString()}명`} />
+        <StatTile icon={UserCog} iconClassName="bg-orange-50 text-orange-600" label="탈퇴 계정" value={`${(data?.totalWithdrawn ?? 0).toLocaleString()}명`} />
+        <StatTile icon={UserX} iconClassName="bg-rose-50 text-rose-600" label="정지 계정" value={`${(data?.totalSuspended ?? 0).toLocaleString()}명`} />
       </div>
 
       <div className="mt-5 rounded-2xl border border-gray-100 bg-white shadow-sm shadow-black/[0.02]">
@@ -117,7 +113,7 @@ export default function AdminUsersPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((row) => (
+                {users.map((row) => (
                   <tr key={row.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/60">
                     <td className="px-5 py-3.5">
                       <span className="flex items-center gap-2.5 font-semibold text-ink-900">
@@ -144,7 +140,7 @@ export default function AdminUsersPage() {
                     </td>
                   </tr>
                 ))}
-                {filteredUsers.length === 0 && (
+                {users.length === 0 && (
                   <tr><td colSpan={8} className="py-10 text-center text-[13px] text-gray-400">사용자가 없습니다.</td></tr>
                 )}
               </tbody>
@@ -153,7 +149,7 @@ export default function AdminUsersPage() {
         )}
 
         <div className="flex items-center justify-between px-5 py-4">
-          <span className="text-[12.5px] text-gray-400">{page * 10 + 1}-{Math.min((page + 1) * 10, totalElements)} / {totalElements.toLocaleString()}명</span>
+          <span className="text-[12.5px] text-gray-400">{totalElements === 0 ? 0 : page * 10 + 1}-{Math.min((page + 1) * 10, totalElements)} / {totalElements.toLocaleString()}명</span>
           <div className="flex items-center gap-1.5">
             <button type="button" onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} aria-label="이전" className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-40">
               <ChevronLeft className="h-4 w-4" />
